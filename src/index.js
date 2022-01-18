@@ -6,6 +6,8 @@ import {
   Route
 } from "react-router-dom";
 
+import 'bootstrap/dist/css/bootstrap.css';
+
 import App from './App';
 import BrowsePage from "./routes/browse";
 import LendPage from "./routes/lend";

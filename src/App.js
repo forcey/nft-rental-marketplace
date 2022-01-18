@@ -1,12 +1,14 @@
 import Login from './components/Login';
 import { NavLink, Outlet } from "react-router-dom";
+import { Container, Navbar, Nav } from 'react-bootstrap';
 
 function App() {
+
   return (
-    <div className="container">
-      <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <span className="navbar-brand">NFT Rental Marketplace</span>
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+    <Container>
+      <Navbar bg="light" expand="lg">
+          <Navbar.Brand>Kasu</Navbar.Brand>
+          <Nav className="me-auto">
             <li className="nav-item">
               <NavLink className="nav-link" to="/">Browse</NavLink>
             </li>
@@ -16,11 +18,11 @@ function App() {
             <li className="nav-item">
               <NavLink className="nav-link" to="/return">Return</NavLink>
             </li>
-          </ul>
+          </Nav>
           <Login/>
-      </nav>
+      </Navbar>
       <Outlet/>
-    </div>
+    </Container>
   );
 }
 
