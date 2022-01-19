@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert} from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 
 class LendPage extends React.Component {
@@ -27,8 +27,13 @@ class LendPage extends React.Component {
 
         // https://docs.opensea.io/reference/getting-assets
         fetch(`https://api.opensea.io/api/v1/assets?owner=${address}&order_direction=desc&offset=0&limit=20`, options)
-            .then(response => response.json())
-            .then(handleResponse)
+            .then(response => {
+                if (response.ok) {
+                    response.json().then(handleResponse);
+                } else {
+                    handleError(`Error ${response.status} while calling OpenSea API`);
+                }
+            })
             .catch(handleError);
     }
 
