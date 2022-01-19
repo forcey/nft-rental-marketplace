@@ -6,7 +6,7 @@ type Props = {
     data: Array<NFTDisplayable>
 }
 
-function keyNFT(nft) {
+function keyNFT(nft : NFTDisplayable) {
     return `${nft.address}/${nft.tokenID}`;
 }
 
@@ -35,7 +35,7 @@ function NFTCardGrid(props: Props) {
     );
 }
 
-function groupNFTs(nfts) {
+function groupNFTs(nfts: Array<NFTDisplayable>) {
     const groupedNFTs = [];
     for (let i = 0; i < nfts.length; i += 3) {
         const nftGroup = [];

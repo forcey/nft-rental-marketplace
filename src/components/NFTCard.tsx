@@ -1,7 +1,10 @@
 import { Card, Button, ListGroup, ListGroupItem } from 'react-bootstrap';
 
 export type NFTDisplayable = {
+    address: string,
     tokenID: string,
+    name: string,
+    contractName: string,
     imageURI: string,
     collateral?: number,
     rentalDuration?: number,
