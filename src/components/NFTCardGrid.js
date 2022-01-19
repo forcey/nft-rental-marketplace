@@ -17,7 +17,7 @@ function NFTCardGrid(props: Props) {
                             {
                                 nftGroup.map((nft) => {
                                     return (
-                                        <Col>
+                                        <Col key={nft.tokenID}>
                                             <NFTCard
                                                 tokenID={nft.tokenID}
                                                 imageURI={nft.imageURI}
