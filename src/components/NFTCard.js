@@ -43,7 +43,8 @@ function NFTCard(props: NFTDisplayable) {
         <Card style={styles.cardContainer}>
             <Card.Img variant="top" src={props.imageURI} />
             <Card.Body>
-                <Card.Title>ID: {props.tokenID}</Card.Title>
+                <Card.Title>{props.contractName}</Card.Title>
+                <Card.Subtitle className="mb-2 text-muted">{props.name}</Card.Subtitle>
                 <ListGroup className="list-group-flush" style={styles.listGroupContainer}>
                     {props.collateral && <ListGroupItem style={styles.listGroupItem}>Collateral: {props.collateral.toString()} ETH</ListGroupItem>}
                     {props.interestRate && <ListGroupItem style={styles.listGroupItem}>Interest: {props.interestRate.toString()}%</ListGroupItem>}

@@ -6,6 +6,10 @@ type Props = {
     data: Array<NFTDisplayable>
 }
 
+function keyNFT(nft) {
+    return `${nft.address}/${nft.tokenID}`;
+}
+
 function NFTCardGrid(props: Props) {
     const groupedNFTs = groupNFTs(props.data);
     return (
@@ -13,20 +17,12 @@ function NFTCardGrid(props: Props) {
             {
                 groupedNFTs.map((nftGroup) => {
                     return (
-                        <Row key={nftGroup[0].tokenID} md={3} style={styles.cardRow}>
+                        <Row key={keyNFT(nftGroup[0])} md={3} style={styles.cardRow}>
                             {
                                 nftGroup.map((nft) => {
                                     return (
-                                        <Col key={nft.tokenID}>
-                                            <NFTCard
-                                                tokenID={nft.tokenID}
-                                                imageURI={nft.imageURI}
-                                                collateral={nft.collateral}
-                                                rentalDuration={nft.rentalDuration}
-                                                interestRate={nft.interestRate}
-                                                actionButtonStyle={nft.actionButtonStyle}
-                                                didClickActionButton={nft.didClickActionButton}
-                                            />
+                                        <Col key={keyNFT(nft)}>
+                                            <NFTCard {...nft}/>
                                         </Col>
                                     );
                                 })
