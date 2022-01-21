@@ -31,7 +31,13 @@ The app was created with the [ethereum-fullstack](https://github.com/dappcamp/et
    npx hardhat node
    ```
 
-3. Connect hardhat node to Metamask
+3. Deploy the contract locally
+
+   ```bash
+   npx hardhat run scripts/deploy.js --network localhost
+   ```
+
+4. Connect hardhat node to Metamask
 
    Open Metamask > Select the network dropdown from the top left > Select `Custom RPC` and enter the following details:
 
@@ -41,7 +47,7 @@ The app was created with the [ethereum-fullstack](https://github.com/dappcamp/et
 
    Click save. You can use this network to connect to the local hardhat node.
 
-4. Connect your local hardhat account to Metamask for making transactions
+5. Connect your local hardhat account to Metamask for making transactions
    - After running `npx hardhat node` you will see a list of 20 addresses logged in the terminal
    - To configure an account copy its private key from the terminal (i.e the text after `Private Key:`)
    - Open Metamask > Click the account icon on top right > Import Account > Paste the private key you just copied > click Import
