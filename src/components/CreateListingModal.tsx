@@ -43,55 +43,55 @@ function CreateListingModal(props: Props) {
 
     return (
         <Modal show={props.isShown}>
-            <Modal.Dialog>
+            <Modal.Dialog style={{width: '100%', marginTop: 0, marginBottom: 0}}>
                 <Modal.Header>
                     <Modal.Title>List NFT for Lending</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3" controlId="formCollateralRequired">
-                        <Form.Label>Collateral Required</Form.Label>
-                        <InputGroup className="mb-3">
-                            <FormControl
-                                type="number"
-                                min="0"
-                                max="100"
-                                placeholder="1"
-                                onInput={validateCollateral}
-                                aria-label="Collateral Required"
-                                aria-describedby="basic-addon2"/>
-                            <InputGroup.Text id="basic-addon2">ETH</InputGroup.Text>
-                        </InputGroup>
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="formRentalDuration">
-                        <Form.Label>Rental Duration</Form.Label>
-                        <InputGroup className="mb-3">
-                            <FormControl
-                                type="number"
-                                min="1"
-                                max="120"
-                                placeholder="1"
-                                onInput={validateRentalDuration}
-                                aria-label="Rental Duration"
-                                aria-describedby="basic-addon2"/>
-                            <InputGroup.Text id="basic-addon2">days</InputGroup.Text>
-                        </InputGroup>
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Interest Rate</Form.Label>
-                        <InputGroup className="mb-3">
-                            <FormControl
-                                type="number"
-                                min="0"
-                                max="100"
-                                placeholder="1"
-                                onInput={validateInterestRate}
-                                aria-label="Interest Rate"
-                                aria-describedby="basic-addon2"/>
-                            <InputGroup.Text id="basic-addon2">%</InputGroup.Text>
-                        </InputGroup>
-                    </Form.Group>
-                </Form>
+                    <Form>
+                        <Form.Group className="mb-3" controlId="formCollateralRequired">
+                            <Form.Label>Collateral Required</Form.Label>
+                            <InputGroup className="mb-3">
+                                <FormControl
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    placeholder="1"
+                                    onInput={validateCollateral}
+                                    aria-label="Collateral Required"
+                                    aria-describedby="basic-addon2"/>
+                                <InputGroup.Text id="basic-addon2">ETH</InputGroup.Text>
+                            </InputGroup>
+                        </Form.Group>
+                        <Form.Group className="mb-3" controlId="formRentalDuration">
+                            <Form.Label>Rental Duration</Form.Label>
+                            <InputGroup className="mb-3">
+                                <FormControl
+                                    type="number"
+                                    min="1"
+                                    max="120"
+                                    placeholder="1"
+                                    onInput={validateRentalDuration}
+                                    aria-label="Rental Duration"
+                                    aria-describedby="basic-addon2"/>
+                                <InputGroup.Text id="basic-addon2">days</InputGroup.Text>
+                            </InputGroup>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Interest Rate</Form.Label>
+                            <InputGroup className="mb-3">
+                                <FormControl
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    placeholder="1"
+                                    onInput={validateInterestRate}
+                                    aria-label="Interest Rate"
+                                    aria-describedby="basic-addon2"/>
+                                <InputGroup.Text id="basic-addon2">%</InputGroup.Text>
+                            </InputGroup>
+                        </Form.Group>
+                    </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={didClickCloseButton}>Close</Button>
