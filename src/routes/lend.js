@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import CreateListingModal from '../components/CreateListingModal';
-import web3provider from "../utils/web3provider";
-
+import { requestAccount } from "../utils/common";
+import LoginService from '../utils/LoginService';
 import FakeNFTContract from "../abis/FakeNFT.json";
 import ContractAddress from "../abis/contract-address.json";
 
@@ -15,7 +15,16 @@ function LendPage() {
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
-    const [listingModalState, setListingModalState] = useState({ isShown: false, tokenID: '', tokenAddress: '' });
+    const [listingModalState, setListingModalState] = useState({ isShown: false, tokenID: '', tokenAddress: ''});
+    const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().loggedInUserAddress);
+    const onLogin = (loggedInUserWalletAddress: string) => {
+        setWalletAddress(loggedInUserWalletAddress);
+    };
+
+    useEffect(() => {
+        LoginService.getInstance().attach(onLogin);
+        return () => LoginService.getInstance().detach(onLogin);
+    }, []);
 
     const listNFT = (tokenID, tokenAddress) => {
         setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
@@ -23,7 +32,7 @@ function LendPage() {
 
     // Fetch all available NFTs in wallet
     useEffect(() => {
-        if (didFetchNFTsInUserWalletRef.current) { return; }
+        if (didFetchNFTsInUserWalletRef.current || !walletAddress) { return; }
         didFetchNFTsInUserWalletRef.current = true;
 
         const loadOpensea = (walletAddress, domain) => {
@@ -146,6 +155,14 @@ function LendPage() {
             interestRate: 1.4,
         }]);
     }, []);
+
+    if (!walletAddress) {
+        return (
+            <Container>
+                <h4>Connect Your Wallet</h4>
+            </Container>
+        );
+    }
 
     if (error) {
         return (<Alert variant="danger">{error}</Alert>);
