@@ -10,7 +10,7 @@ export type NFTDisplayable = {
     rentalDuration?: number,
     interestRate?: number,
     actionButtonStyle?: 'BORROW' | 'LIST' | 'UNLIST' | 'TERMINATE_RENTAL' | 'RETURN',
-    didClickActionButton?: (() => void),
+    didClickActionButton?: ((tokenID: string, tokenAddress: string) => void),
 };
 
 function NFTCard(props: NFTDisplayable) {
@@ -42,6 +42,9 @@ function NFTCard(props: NFTDisplayable) {
                 break;
         }
     }
+    const didClickActionButton = () => {
+        props.didClickActionButton && props.didClickActionButton(props.tokenID, props.address);
+    };
     return (
         <Card style={styles.cardContainer}>
             <Card.Img variant="top" src={props.imageURI} />
@@ -54,7 +57,7 @@ function NFTCard(props: NFTDisplayable) {
                     {props.rentalDuration && <ListGroupItem style={styles.listGroupItem}>Duration: {props.rentalDuration.toString()} days</ListGroupItem>}
                 </ListGroup>
                 <div className="row" style={styles.buttonRow}>
-                { props.actionButtonStyle && <Button variant={buttonVariant} onClick={props.didClickActionButton}>{buttonString}</Button>}
+                { props.actionButtonStyle && <Button variant={buttonVariant} onClick={didClickActionButton}>{buttonString}</Button>}
                 </div>
             </Card.Body>
         </Card>
