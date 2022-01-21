@@ -5,20 +5,25 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract Kasu {
-    uint public listingsCount; // keep track of number of listings
+    // Events
+
+    event ListNFT(
+        uint256 listingId,
+        uint256 indexed tokenId,
+        address indexed tokenAddress,
+        address indexed lenderAddress,
+        uint16 duration,
+        uint16 dailyInterestRate,
+        uint256 collateralRequired
+    );
+
+
+    uint256 private listingId = 1;
     address public owner;
 
     constructor() {
-        listingsCount = 0;
         owner = msg.sender;
     }
-
-    enum RentalStatus {
-        None,
-        Available,
-        Unavailable
-    }
-
     // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days)
     // 1ETH * 1% daily interest rate * 5 days = 0.05ETH total
     struct Listing {
@@ -30,7 +35,6 @@ contract Kasu {
         uint16 dailyInterestRate; // daily interest rate
         uint256 collateralRequired; // collateral required
         Rental rental; // Store borrower + rental info
-        RentalStatus rentalStatus; // status of rental
     }
 
     struct Rental {
@@ -44,15 +48,8 @@ contract Kasu {
     // create a mapping of listing_id => Listing
     mapping(uint => Listing) listingsMap;
 
-
-    // [TODO] Remove this test function
-    function incrementListingCount() public {
-        listingsCount += 1;
-    }
-
-    // [TODO] Remove this test function
-    function getListingCount() public view returns (uint) {
-        return listingsCount;
+    function getListingId() external view returns (uint) {
+        return listingId;
     }
 
     // [Feature 1] Main listings dashboard
@@ -74,8 +71,45 @@ contract Kasu {
     }
     // [Feature 2] Lender's dashboard
     // Lender can list NFT and store all this information in Listing
-    function listNFT(uint256 tokenId, address tokenAddress, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
+    function listNFT(
+        uint256 _tokenId, 
+        address _tokenAddress,
+        address _lenderAddress,
+        uint16 _duration, 
+        uint16 _dailyInterestRate, 
+        uint256 _collateralRequired) public {
+        require(_lenderAddress == owner, "You do not own the NFT");
 
+        Rental memory rental;
+        Listing memory newListing = Listing({
+            id: listingId,
+            tokenId: _tokenId,
+            tokenAddress: _tokenAddress,
+            lenderAddress: payable(msg.sender),
+            duration: _duration,
+            dailyInterestRate: _dailyInterestRate,
+            collateralRequired: _collateralRequired,
+            rental: rental
+        });
+
+        validateListingNFT(newListing);
+
+        // push validated listings
+        listings.push(newListing);
+
+        listingsMap[listingId] = newListing;
+
+        emit ListNFT(
+            listingId,
+            _tokenId,
+            _tokenAddress,
+            msg.sender,
+            _duration,
+            _dailyInterestRate,
+            _collateralRequired
+        );
+
+        listingId++;
     }
 
     // [Feature 2] Lender's dashboard
@@ -100,6 +134,17 @@ contract Kasu {
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
     function returnNFT(uint256 tokenId) public {
 
+    }
+
+
+    // helper functions
+
+    function validateListingNFT(Listing memory listing) private pure {
+        require(listing.tokenId != 0, "validateListingNFT:: TokenId cannot be empty");
+        require(listing.tokenAddress != address(0), "validateListingNFT:: TokenAddress cannot be empty");
+        require(listing.duration > 0, "validateListingNFT:: Duration cannot be zero");
+        require(listing.dailyInterestRate > 0, "validateListingNFT:: Daily interest rate cannot be zero");
+        require(listing.collateralRequired > 0, "validateListingNFT:: Collateral cannot be zero");
     }
 
 }
