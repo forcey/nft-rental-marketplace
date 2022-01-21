@@ -11,12 +11,13 @@ contract Kasu {
         listingsCount = 0;
     }
 
-    enum RentalStatus { 
-        Available, 
-        Unavailable 
+    enum RentalStatus {
+        None,
+        Available,
+        Unavailable
     }
 
-    // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days) 
+    // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days)
     // 1ETH * 1% daily interest rate * 5 days = 0.05ETH total
     struct Listing {
         uint256 tokenId; // tokenId from ERC 721 https://ethereum.org/en/developers/docs/standards/tokens/erc-721/
@@ -25,7 +26,8 @@ contract Kasu {
         uint16 duration; // duration of the loan in days
         uint16 dailyInterestRate; // daily interest rate
         uint256 collateralRequired; // collateral required
-        RentalStatus rentalStatus; // status of rental 
+        Rental rental; // Store borrower + rental info
+        RentalStatus rentalStatus; // status of rental
     }
 
     struct Rental {
@@ -35,6 +37,9 @@ contract Kasu {
     }
 
     Listing[] public Listings;
+
+    // create a mapping of listing_id => Listing
+    mapping(uint => Listing) listingsMap;
 
 
     // [Feature 1] Main listings dashboard
@@ -53,7 +58,7 @@ contract Kasu {
     // Front end will pass in owner's token ids and return all the listings
     function viewOwnerListings(address ownerAddress) public returns (Listing[] memory){
 
-    } 
+    }
     // [Feature 2] Lender's dashboard
     // Lender can list NFT and store all this information in Listing
     function listNFT(uint256 tokenId, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
