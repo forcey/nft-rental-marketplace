@@ -6,9 +6,11 @@ import "hardhat/console.sol";
 
 contract Kasu {
     uint public listingsCount; // keep track of number of listings
+    address public owner;
 
-    constructor() public {
+    constructor() {
         listingsCount = 0;
+        owner = msg.sender;
     }
 
     enum RentalStatus {
@@ -20,6 +22,7 @@ contract Kasu {
     // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days)
     // 1ETH * 1% daily interest rate * 5 days = 0.05ETH total
     struct Listing {
+        uint256 id; // listing id
         uint256 tokenId; // tokenId from ERC 721 https://ethereum.org/en/developers/docs/standards/tokens/erc-721/
         address tokenAddress;
         address payable lenderAddress; // lenderAddress
@@ -36,11 +39,21 @@ contract Kasu {
         uint256 rentedAt; // timestamp at which the NFT was rented
     }
 
-    Listing[] public Listings;
+    Listing[] public listings;
 
     // create a mapping of listing_id => Listing
     mapping(uint => Listing) listingsMap;
 
+
+    // [TODO] Remove this test function
+    function incrementListingCount() public {
+        listingsCount += 1;
+    }
+
+    // [TODO] Remove this test function
+    function getListingCount() public view returns (uint) {
+        return listingsCount;
+    }
 
     // [Feature 1] Main listings dashboard
     // This function returns all listings stored in the contract. Only show when rental status is available
@@ -61,7 +74,7 @@ contract Kasu {
     }
     // [Feature 2] Lender's dashboard
     // Lender can list NFT and store all this information in Listing
-    function listNFT(uint256 tokenId, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
+    function listNFT(uint256 tokenId, address tokenAddress, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
 
     }
 
