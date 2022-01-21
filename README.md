@@ -8,8 +8,8 @@ The app was created with the [ethereum-fullstack](https://github.com/dappcamp/et
 
    - Please skip this step if you want to use local network
    - Change line - `const NETWORK = LOCAL_NETWORK` to `const NETWORK = TEST_NETWORK` in `hardhat.config.js`
-   - Replace `YOUR_ALCHEMY_API_KEY` with your api key from alchemy in `.env` file
-   - Replace `YOUR_WALLET_PRIVATE_KEY` with your wallet's private key from metamask wallet in `.env` file
+   - Replace `ALCHEMY_API_KEY` with your api key from alchemy in `.env` file
+   - Replace `WALLET_PRIVATE_KEY` with your wallet's private key from metamask wallet in `.env` file
 
 1. Running test for sample contract
 
