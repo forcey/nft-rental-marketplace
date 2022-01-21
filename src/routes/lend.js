@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
+import CreateListingModal from '../components/CreateListingModal';
 
 function LendPage() {
     const didFetchNFTsInUserWalletRef = useRef(false);
@@ -8,9 +9,10 @@ function LendPage() {
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
+    const [listingModalState, setListingModalState] = useState({ isShown: false, tokenID: '', tokenAddress: ''});
 
     const listNFT = (tokenID, tokenAddress) => {
-        // TODO: Implement modal
+        setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
     };
 
     // Fetch all available NFTs in wallet
@@ -97,6 +99,13 @@ function LendPage() {
         return (<Alert variant="danger">{error}</Alert>);
     }
 
+    const closeListingModal = (didListNFT) => {
+        setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
+        if (didListNFT) {
+            // TODO: Re-fetch listed NFTs
+        }
+    };
+
     return (
         <Container>
             <h4>Available</h4>
@@ -105,6 +114,12 @@ function LendPage() {
             <NFTCardGrid data={nftsListedForLending} />
             <h4>Lent Out</h4>
             <NFTCardGrid data={nftsLentOut} />
+            { listingModalState.isShown &&
+              <CreateListingModal
+                isShown={listingModalState.isShown}
+                tokenID={listingModalState.tokenID}
+                tokenAddress={listingModalState.tokenAddress}
+                onShouldClose={closeListingModal} /> }
         </Container>
     )
 }
