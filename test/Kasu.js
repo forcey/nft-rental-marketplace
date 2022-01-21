@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { constants, expectRevert } = require('@openzeppelin/test-helpers');
 
 const MAX_RENT_DURATION = 5;
 const DAILY_INTEREST_RATE = 1;
@@ -24,58 +23,44 @@ describe("Kasu", function () {
   });
 
   describe("listNFT", function () {
-    it("should revert when lender address is not the message sender", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, account1.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED),
-        'You do not own the NFT',
-      );
-    });
-
     it("should revert when token id is empty", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(0, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED),
-        'validateListingNFT:: TokenId cannot be empty',
-      );
+      await expect(
+        contract.connect(owner).listNFT(0, TOKEN_ADDRESS, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED)
+			).to.be.revertedWith("validateListingNFT:: TokenId cannot be empty");
     });
 
     it("should revert when token address is empty", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(TOKEN_ID, constants.ZERO_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED),
-        'validateListingNFT:: TokenAddress cannot be empty',
-      );
+      await expect(
+        contract.connect(owner).listNFT(TOKEN_ID, "0x0000000000000000000000000000000000000000", MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED)
+      ).to.be.revertedWith("validateListingNFT:: TokenAddress cannot be empty");
     });
 
     it("should revert when listing rent duration is zero", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, owner.address, 0, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED),
-        'validateListingNFT:: Duration cannot be zero',
-      );
+      await expect(
+        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, 0, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED)
+      ).to.be.revertedWith("validateListingNFT:: Duration cannot be zero");
     });
 
     it("should revert when daily interest rate is zero", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, 0, COLLATERAL_REQUIRED),
-        'validateListingNFT:: Daily interest rate cannot be zero',
-      );
+      await expect(
+        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, MAX_RENT_DURATION, 0, COLLATERAL_REQUIRED)
+      ).to.be.revertedWith("validateListingNFT:: Daily interest rate cannot be zero");
     });
 
     it("should revert when collateral is zero", async function () {
-      await expectRevert(
-        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, 0),
-        'validateListingNFT:: Collateral cannot be zero',
-      );
+      await expect(
+        contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, MAX_RENT_DURATION, DAILY_INTEREST_RATE, 0)
+      ).to.be.revertedWith("validateListingNFT:: Collateral cannot be zero");
     });
 
     it("should emit listNFT event when NFT is listed", async function () {
-      let currentListingId = (await contract.connect(owner).getListingId()).toNumber();
+      let currentListingCount = (await contract.connect(owner).getListingCount()).toNumber();
 
-      await expect(contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED))
+      await expect(contract.connect(owner).listNFT(TOKEN_ID, TOKEN_ADDRESS, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED))
         .to.emit(contract, "ListNFT")
-        .withArgs(currentListingId, TOKEN_ID, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED);
+        .withArgs(currentListingCount, TOKEN_ID, TOKEN_ADDRESS, owner.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED);
 
-      const newListingId = (await contract.connect(owner).getListingId()).toNumber();
-
-      expect(newListingId).to.eq(currentListingId += 1);
     });
+  });
 
 });

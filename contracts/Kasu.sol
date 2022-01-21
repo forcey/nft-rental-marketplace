@@ -19,13 +19,6 @@ contract Kasu {
         uint256 collateralRequired
     );
     uint public listingsCount = 1;
-    address public owner;
-
-
-    constructor() {
-        listingsCount = 0;
-        owner = msg.sender;
-    }
 
     enum RentalStatus {
         None,
@@ -58,6 +51,10 @@ contract Kasu {
     // set of active (non-deleted) listing ids.
     EnumerableSet.UintSet listingsSet;
     using EnumerableSet for EnumerableSet.UintSet;
+
+    function getListingCount() public view returns (uint) {
+        return listingsCount;
+    }
 
     // assigns id to a listing, inserts into the data structure, and returns the id.
     function _addListing(Listing memory listing) internal returns (uint) {
@@ -109,7 +106,20 @@ contract Kasu {
             }),
             rentalStatus: RentalStatus.Available
         });
+
+        validateListingNFT(listing);
+
         _addListing(listing);
+
+        emit ListNFT(
+            listing.id,
+            listing.tokenId,
+            listing.tokenAddress,
+            listing.lenderAddress,
+            listing.duration,
+            listing.dailyInterestRate,
+            listing.collateralRequired
+        );
     }  
 
     // [Feature 2] Lender's dashboard
@@ -134,6 +144,16 @@ contract Kasu {
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
     function returnNFT(uint256 tokenId) public {
 
+    }
+
+     // helper functions
+
+    function validateListingNFT(Listing memory listing) private pure {
+        require(listing.tokenId != 0, "validateListingNFT:: TokenId cannot be empty");
+        require(listing.tokenAddress != address(0), "validateListingNFT:: TokenAddress cannot be empty");
+        require(listing.duration > 0, "validateListingNFT:: Duration cannot be zero");
+        require(listing.dailyInterestRate > 0, "validateListingNFT:: Daily interest rate cannot be zero");
+        require(listing.collateralRequired > 0, "validateListingNFT:: Collateral cannot be zero");
     }
 
 }
