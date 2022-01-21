@@ -1,7 +1,6 @@
-import { ethers } from 'ethers';
-
 import { useState, useEffect, useRef } from 'react';
-import { Alert, } from 'react-bootstrap';
+import { Container, Alert } from 'react-bootstrap';
+import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import web3provider from "../utils/web3provider";
 
@@ -13,10 +12,6 @@ function BrowsePage() {
     const didFetchListingsRef = useRef(false);
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
-
-    const sayHello = (() => {
-        console.log('hello');
-    });
 
     useEffect(() => {
         if (didFetchListingsRef.current) { return; }
