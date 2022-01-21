@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 
 import LoginService from '../utils/LoginService';
 
-declare let window: any;
-
 function Login() {
     const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().loggedInUserAddress);
     const onLogin = (loggedInUserWalletAddress: string) => {
