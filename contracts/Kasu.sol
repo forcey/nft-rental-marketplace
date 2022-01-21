@@ -7,8 +7,20 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "hardhat/console.sol";
 
 contract Kasu {
-    uint public listingsCount; // keep track of number of listings
+    // Events
+
+    event ListNFT(
+        uint256 listingId,
+        uint256 indexed tokenId,
+        address indexed tokenAddress,
+        address indexed lenderAddress,
+        uint16 duration,
+        uint16 dailyInterestRate,
+        uint256 collateralRequired
+    );
+    uint public listingsCount = 1;
     address public owner;
+
 
     constructor() {
         listingsCount = 0;
@@ -59,16 +71,6 @@ contract Kasu {
     function _deleteListing(uint id) internal {
         delete listingsMap[id];
         listingsSet.remove(id);
-    }
-
-    // [TODO] Remove this test function
-    function incrementListingCount() public {
-        listingsCount += 1;
-    }
-
-    // [TODO] Remove this test function
-    function getListingCount() public view returns (uint) {
-        return listingsCount;
     }
 
     // [Feature 1] Main listings dashboard
