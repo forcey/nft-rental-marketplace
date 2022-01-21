@@ -1,0 +1,2 @@
+# Ignore contract address on a local deployment.
+contract-address.json

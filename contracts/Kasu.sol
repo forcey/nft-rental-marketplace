@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+
 import "hardhat/console.sol";
 
 contract Kasu {
@@ -39,11 +41,25 @@ contract Kasu {
         uint256 rentedAt; // timestamp at which the NFT was rented
     }
 
-    Listing[] public listings;
-
     // create a mapping of listing_id => Listing
     mapping(uint => Listing) listingsMap;
+    // set of active (non-deleted) listing ids.
+    EnumerableSet.UintSet listingsSet;
+    using EnumerableSet for EnumerableSet.UintSet;
 
+    // assigns id to a listing, inserts into the data structure, and returns the id.
+    function _addListing(Listing memory listing) internal returns (uint) {
+        listing.id = listingsCount++;
+        listingsMap[listing.id] = listing;
+        listingsSet.add(listing.id);
+        return listing.id;
+    }
+
+    // deletes a listing from the data structure.
+    function _deleteListing(uint id) internal {
+        delete listingsMap[id];
+        listingsSet.remove(id);
+    }
 
     // [TODO] Remove this test function
     function incrementListingCount() public {
@@ -75,8 +91,24 @@ contract Kasu {
     // [Feature 2] Lender's dashboard
     // Lender can list NFT and store all this information in Listing
     function listNFT(uint256 tokenId, address tokenAddress, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
-
-    }
+        // TODO: this is basic functionality to enable testing. Need to add validation etc. for public use.
+        Listing memory listing = Listing ({
+            id: 0,  // will be assigned by _addListing()
+            tokenId: tokenId,
+            tokenAddress: tokenAddress,
+            lenderAddress: payable(msg.sender),
+            duration: duration,
+            dailyInterestRate: dailyInterestRate,
+            collateralRequired: collateralRequired,
+            rental: Rental({
+                borrowerAddress: payable(0),
+                rentDuration: 0,
+                rentedAt: 0
+            }),
+            rentalStatus: RentalStatus.Available
+        });
+        _addListing(listing);
+    }  
 
     // [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
