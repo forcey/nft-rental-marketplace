@@ -1,37 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
-import CreateListingModal from '../components/CreateListingModal';
 
 function LendPage() {
+    const didFetchNFTsInUserWalletRef = useRef(false);
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
-    const [shouldShowCreateListingModal, setShouldShowCreateListingModal] = useState(false);
 
     const listNFT = (tokenID, tokenAddress) => {
-        setShouldShowCreateListingModal(true);
         // TODO: Implement modal
-    };
-    const parseOpenSeaResponse = (response) => {
-        const fetchedNFTs = response.assets.map(asset => ({
-            address: asset.asset_contract.address,
-            tokenID: asset.token_id,
-            name: asset.name,
-            contractName: asset.asset_contract.name,
-            imageURI: asset.image_preview_url,
-            actionButtonStyle: 'LIST',
-            didClickActionButton: listNFT,
-        }));
-        setNFTsInUserWallet(nftsInUserWallet.concat(fetchedNFTs));
     };
 
     // Fetch all available NFTs in wallet
     useEffect(() => {
+        if (didFetchNFTsInUserWalletRef.current) { return; }
+        didFetchNFTsInUserWalletRef.current = true;
         const options = { method: 'GET', headers: { Accept: 'application/json' } };
         // TODO: pass in the wallet address from props.
         const walletAddress = "0x1086A7DC518546bb8615Df03F23A27433a5EeeE5";
+        const parseOpenSeaResponse = (response) => {
+            const fetchedNFTs = response.assets.map(asset => ({
+                address: asset.asset_contract.address,
+                tokenID: asset.token_id,
+                name: asset.name,
+                contractName: asset.asset_contract.name,
+                imageURI: asset.image_preview_url,
+                actionButtonStyle: 'LIST',
+                didClickActionButton: listNFT,
+            }));
+            setNFTsInUserWallet(nftsInUserWallet.concat(fetchedNFTs));
+        };
         // https://docs.opensea.io/reference/getting-assets
         fetch(`https://api.opensea.io/api/v1/assets?owner=${walletAddress}&order_direction=desc&offset=0&limit=20`, options)
             .then(response => {
@@ -44,7 +44,7 @@ function LendPage() {
             .catch((error) => {
                 setError(error);
             });
-    }, []);
+    }, [setNFTsInUserWallet, nftsInUserWallet]);
 
     const unlistNFT = (tokenID, tokenAddress) => {
         // TODO: Implement unlist smart contract integration logic
