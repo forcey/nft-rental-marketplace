@@ -10,6 +10,22 @@ async function deployContract(name) {
     return contract;
 }
 
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+function removeNumericKeys(object) {
+    cleanObj = {}
+    for (const key in object) {
+        if (isNaN(key)) {
+            cleanObj[key] = object[key]
+        }
+    }
+    return cleanObj;
+}
+
 async function main() {
     const accounts = await hre.ethers.getSigners();
 
@@ -20,9 +36,22 @@ async function main() {
         "FakeNFT": fakeNFT
     });
 
+    console.log("Minting 10 NFTs for each account...")
     for (const account of accounts) {
-        // Mint 10 NFTs for each account
         await fakeNFT.connect(account).mint(10);
+        break;
+    }
+
+    owner = accounts[0];
+    console.log("Listing 5 NFTs from account " + owner.address);
+
+    for (var i = 0; i < 5; i++) {
+        id = await fakeNFT.tokenOfOwnerByIndex(owner.address, i);
+        await kasuContract.listNFT(id, fakeNFT.address, getRandomInt(1, 8), getRandomInt(1, 10), getRandomInt(1, 1000))
+    }
+    events = await kasuContract.queryFilter("ListNFT");
+    for (const event of events) {
+        console.log(removeNumericKeys(event.args))
     }
 }
 
@@ -48,7 +77,8 @@ function saveFrontendFiles(contracts) {
     fs.writeFileSync(
         contractsDir + "/contract-address.json",
         JSON.stringify(addresses, undefined, 2)
-    );}
+    );
+}
 
 main()
     .then(() => process.exit(0))
