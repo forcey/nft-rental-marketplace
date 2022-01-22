@@ -1,5 +1,9 @@
-const { expect } = require("chai");
 const { ethers } = require("hardhat");
+
+var chai = require('chai');
+var chaiSubset = require('chai-subset');
+chai.use(chaiSubset);
+var expect = chai.expect;
 
 const MAX_RENT_DURATION = 5;
 const DAILY_INTEREST_RATE = 1;
@@ -23,7 +27,8 @@ describe("Kasu", function () {
     owner = accounts[0];
     account1 = accounts[1];
 
-    const Kasu = await ethers.getContractFactory("Kasu");
+    const KasuContractArtifact = artifacts.readArtifactSync("Kasu");
+    const Kasu = await ethers.getContractFactoryFromArtifact(KasuContractArtifact);
 
     contract = await Kasu.deploy();
 
@@ -74,38 +79,37 @@ describe("Kasu", function () {
       await contract.connect(owner).listNFT(TOKEN_ID_2, TOKEN_ADDRESS, 4, 5, 6);
       expect(
         await contract.viewAllListings()
-      ).to.eql([
-        // TODO: could this be friendlier? like returning a js object with names?
-        [
-        /* id */ ethers.BigNumber.from(1),
-        /* tokenId */ ethers.BigNumber.from(TOKEN_ID_1),
-        /* tokenAddress */ TOKEN_ADDRESS,
-        /* lenderAddress */ owner.address,
-        /* duration */ 1,
-        /* dailyInterestRate */ 2,
-        /* collateralRequired */ ethers.BigNumber.from(3),
-        /* rental */[
-          /*borrowerAddress*/ ZERO_ADDRESS,
-          /*rentDuration*/ 0,
-          /*rentedAt*/ ethers.BigNumber.from(0),
-          ],
-        /*rentalStatus*/ RentalStatus.Available
-        ],
-        [
-          /* id */ ethers.BigNumber.from(2),
-          /* tokenId */ ethers.BigNumber.from(TOKEN_ID_2),
-          /* tokenAddress */ TOKEN_ADDRESS,
-          /* lenderAddress */ owner.address,
-          /* duration */ 4,
-          /* dailyInterestRate */ 5,
-          /* collateralRequired */ ethers.BigNumber.from(6),
-          /* rental */[
-            /*borrowerAddress*/ ZERO_ADDRESS,
-            /*rentDuration*/ 0,
-            /*rentedAt*/ ethers.BigNumber.from(0),
-          ],
-          /*rentalStatus*/ RentalStatus.Available
-        ]
+      ).to.containSubset([
+        {
+          id: ethers.BigNumber.from(1),
+          tokenId: ethers.BigNumber.from(TOKEN_ID_1),
+          tokenAddress: TOKEN_ADDRESS,
+          lenderAddress: owner.address,
+          duration: 1,
+          dailyInterestRate: 2,
+          collateralRequired: ethers.BigNumber.from(3),
+          rental: {
+            borrowerAddress: ZERO_ADDRESS,
+            rentDuration: 0,
+            rentedAt: ethers.BigNumber.from(0),
+          },
+          rentalStatus: RentalStatus.Available
+        },
+        {
+          id: ethers.BigNumber.from(2),
+          tokenId: ethers.BigNumber.from(TOKEN_ID_2),
+          tokenAddress: TOKEN_ADDRESS,
+          lenderAddress: owner.address,
+          duration: 4,
+          dailyInterestRate: 5,
+          collateralRequired: ethers.BigNumber.from(6),
+          rental: {
+            borrowerAddress: ZERO_ADDRESS,
+            rentDuration: 0,
+            rentedAt: ethers.BigNumber.from(0),
+          },
+          rentalStatus: RentalStatus.Available
+        }
       ])
     })
   })
