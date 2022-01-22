@@ -1,19 +1,32 @@
 const hre = require("hardhat");
 
-async function main() {
-    const [deployer] = await hre.ethers.getSigners();
+async function deployContract(name) {
+    const factory = await hre.ethers.getContractFactory(name);
+    const contract = await factory.deploy();
 
-    const Kasu = await hre.ethers.getContractFactory("Kasu");
-    const kasuContract = await Kasu.deploy();
+    await contract.deployed();
+    console.log(`${name} Contract address:`, contract.address);
 
-    await kasuContract.deployed();
-    console.log("Kasu Contract address:", kasuContract.address);
-
-    saveFrontendFiles(kasuContract);
-
+    return contract;
 }
 
-function saveFrontendFiles(contract) {
+async function main() {
+    const accounts = await hre.ethers.getSigners();
+
+    const kasuContract = await deployContract("Kasu");
+    const fakeNFT = await deployContract("FakeNFT");
+    saveFrontendFiles({
+        "Kasu": kasuContract,
+        "FakeNFT": fakeNFT
+    });
+
+    for (const account of accounts) {
+        // Mint 10 NFTs for each account
+        await fakeNFT.connect(account).mint(10);
+    }
+}
+
+function saveFrontendFiles(contracts) {
     const fs = require("fs");
     const contractsDir = __dirname + "/../src/abis";
 
@@ -21,18 +34,21 @@ function saveFrontendFiles(contract) {
         fs.mkdirSync(contractsDir);
     }
 
+    var addresses = {}
+    for (const contractName in contracts) {
+        addresses[contractName] = contracts[contractName].address;
+
+        const artifact = artifacts.readArtifactSync(contractName);
+
+        fs.writeFileSync(
+            contractsDir + `/${contractName}.json`,
+            JSON.stringify(artifact, null, 2)
+        );
+    }
     fs.writeFileSync(
         contractsDir + "/contract-address.json",
-        JSON.stringify({ Kasu: contract.address }, undefined, 2)
-    );
-
-    const KasuContractArtifact = artifacts.readArtifactSync("Kasu");
-
-    fs.writeFileSync(
-        contractsDir + "/Kasu.json",
-        JSON.stringify(KasuContractArtifact, null, 2)
-    );
-}
+        JSON.stringify(addresses, undefined, 2)
+    );}
 
 main()
     .then(() => process.exit(0))
