@@ -78,7 +78,7 @@ contract Kasu {
 
     // [Feature 1] Main listings dashboard
     // Front end will invoke this function to deposit collateral and receive the NFT to the borrower's address
-    function borrow(uint256 tokenId) public {
+    function borrow(uint256 listingId) public {
 
     }
 
@@ -124,25 +124,25 @@ contract Kasu {
 
     // [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
-    function unListNFT(uint256 tokenId) public {
+    function unListNFT(uint256 listingId) public {
 
     }
 
     // [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
-    function terminateRental(uint256 tokenId) public {
+    function terminateRental(uint256 listingId) public {
 
     }
 
     // [Feature 3] Borrower's dashboard
     // borrower can see all the NFTs they borrowed
-    function viewRentedListings(uint256 tokenId) public {
+    function viewRentedListings(uint256 listingId) public {
 
     }
 
     // [Feature 3] Borrower's dashboard
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
-    function returnNFT(uint256 tokenId) public {
+    function returnNFT(uint256 listingId) public {
 
     }
 
