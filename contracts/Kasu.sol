@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
 import "hardhat/console.sol";
+import "./KasuStorage.sol";
 
-contract Kasu {
+contract Kasu is KasuStorage {
     // Events
-
     event ListNFT(
         uint256 listingId,
         uint256 indexed tokenId,
@@ -18,62 +16,20 @@ contract Kasu {
         uint16 dailyInterestRate,
         uint256 collateralRequired
     );
-    uint public listingsCount = 1;
-
-    enum RentalStatus {
-        None,
-        Available,
-        Unavailable
-    }
-
-    // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days)
-    // 1ETH * 1% daily interest rate * 5 days = 0.05ETH total
-    struct Listing {
-        uint256 id; // listing id
-        uint256 tokenId; // tokenId from ERC 721 https://ethereum.org/en/developers/docs/standards/tokens/erc-721/
-        address tokenAddress;
-        address payable lenderAddress; // lenderAddress
-        uint16 duration; // duration of the loan in days
-        uint16 dailyInterestRate; // daily interest rate
-        uint256 collateralRequired; // collateral required
-        Rental rental; // Store borrower + rental info
-        RentalStatus rentalStatus; // status of rental
-    }
-
-    struct Rental {
-        address payable borrowerAddress;
-        uint16 rentDuration; // current rent duration
-        uint256 rentedAt; // timestamp at which the NFT was rented
-    }
-
-    // create a mapping of listing_id => Listing
-    mapping(uint => Listing) listingsMap;
-    // set of active (non-deleted) listing ids.
-    EnumerableSet.UintSet listingsSet;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     function getListingCount() public view returns (uint) {
-        return listingsCount;
-    }
-
-    // assigns id to a listing, inserts into the data structure, and returns the id.
-    function _addListing(Listing memory listing) internal returns (uint) {
-        listing.id = listingsCount++;
-        listingsMap[listing.id] = listing;
-        listingsSet.add(listing.id);
-        return listing.id;
-    }
-
-    // deletes a listing from the data structure.
-    function _deleteListing(uint id) internal {
-        delete listingsMap[id];
-        listingsSet.remove(id);
+        return _getListingCount();
     }
 
     // [Feature 1] Main listings dashboard
-    // This function returns all listings stored in the contract. Only show when rental status is available
-    function viewAllListings() public returns (Listing[] memory){
-
+    // This function returns all listings stored in the contract.
+    function viewAllListings() public view returns (Listing[] memory){
+        uint256[] memory listingIds = _getListingIds();
+        Listing[] memory listings = new Listing[](listingIds.length);
+        for (uint i = 0; i < listingIds.length; i++) {
+            listings[i] = _getListingById(listingIds[i]);
+        }
+        return listings;
     }
 
     // [Feature 1] Main listings dashboard
