@@ -46,6 +46,15 @@ export default class LoginService {
         return LoginService.instance._chainId;
     }
 
+    public get chainName(): string {
+        const chainMapping: {[key: number]: string} = {
+            1: "Mainnet",
+            4: "Rinkeby",
+        };
+        if (LoginService.instance._chainId == null) { return "Unknown" }
+        return chainMapping[LoginService.instance._chainId];
+    }
+
     public linkAccount() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         // Prompt user for account connections

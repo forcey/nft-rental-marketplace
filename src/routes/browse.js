@@ -1,30 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Container, Alert } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
-import web3provider from "../utils/web3provider";
-
+import { ethers } from "ethers";
 import KasuContract from "../abis/Kasu.json";
 import ContractAddress from "../abis/contract-address.json";
 import { RentalStatus } from "../abis/constants";
 
 function BrowsePage() {
-    const didFetchListingsRef = useRef(false);
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
 
-    useEffect(() => {
-        if (didFetchListingsRef.current) { return; }
-        didFetchListingsRef.current = true;
-
+    const fetchListings = useCallback(() => {
         (async () => {
-            if (!await web3provider.Enable(false)) {
-                // If the user didn't sign in, don't load listings.
-                // In the future maybe this can be upgraded to an infura provider for read-only access.
-                setError("Please login first.");
-                return;
-            }
-            const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, web3provider.signer);
+            const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
             let fetchedListings = [];
             try {
                 fetchedListings = await contract.viewAllListings();
@@ -32,7 +21,7 @@ function BrowsePage() {
                 setError(e.toString());
                 return;
             }
-            var availableListings = [];
+            const availableListings = [];
             for (const listing of fetchedListings) {
                 if (listing.rentalStatus !== RentalStatus.Available) {
                     continue;
@@ -49,16 +38,35 @@ function BrowsePage() {
                     rentalDuration: listing.duration,
                     interestRate: listing.dailyInterestRate,
                     actionButtonStyle: 'BORROW',
-                    didClickActionButton: sayHello,
+                    didClickActionButton: () => {},
                 });
             }
             setListings(listings.concat(availableListings));
         })();
-    });
+    }, [setListings, listings]);
+
+    // Listen to login service events. This will get run multiple times and can't be only run one-time.
+    useEffect(() => {
+        LoginService.getInstance().onLogin(fetchListings);
+        LoginService.getInstance().onChainChanged(fetchListings);
+        return () => {
+            LoginService.getInstance().detachLoginObserver(fetchListings)
+            LoginService.getInstance().detachChainChangedObserver(fetchListings);
+        };
+    }, [fetchListings]);
+
+    if (!LoginService.getInstance().provider) {
+        return (
+            <Container>
+                <h4>Connect Your Wallet</h4>
+            </Container>
+        );
+    }
 
     if (error) {
         return (<Alert variant="danger">{error}</Alert>);
     }
+
     return <NFTCardGrid data={listings} />
 }
 
