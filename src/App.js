@@ -7,7 +7,17 @@ function App() {
   return (
     <Container>
       <Navbar bg="light" expand="lg">
-          <Navbar.Brand>Kasu</Navbar.Brand>
+        <Container>
+          <Navbar.Brand>
+            <img
+              alt=""
+              src="/katsu.png"
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />
+            { ' ' }Kasu
+          </Navbar.Brand>
           <Nav className="me-auto">
             <li className="nav-item">
               <NavLink className="nav-link" to="/">Browse</NavLink>
@@ -20,6 +30,7 @@ function App() {
             </li>
           </Nav>
           <Login/>
+        </Container>
       </Navbar>
       <Outlet/>
     </Container>

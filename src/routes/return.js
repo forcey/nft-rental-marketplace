@@ -1,9 +1,30 @@
+import { useState, useEffect } from 'react';
+import { Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
+import LoginService from '../utils/LoginService';
 
 function ReturnPage() {
-    const sayHello = (() => {
-        console.log('hello');
-    });
+    const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().loggedInUserAddress);
+    const onLogin = (loggedInUserWalletAddress: string) => {
+        setWalletAddress(loggedInUserWalletAddress);
+    };
+
+    useEffect(() => {
+        LoginService.getInstance().onLogin(onLogin);
+        if (LoginService.getInstance().provider != null) {
+            onLogin(LoginService.getInstance().walletAddress);
+        }
+        return () => LoginService.getInstance().detachLoginObserver(onLogin);
+    }, []);
+
+    if (!walletAddress) {
+        return (
+            <Container>
+                <h4>Connect Your Wallet</h4>
+            </Container>
+        );
+    }
+
     const nfts = [
         {
             address: '0x280956156bfbb02959adcac28e50af9ed49c1f21',
@@ -15,7 +36,7 @@ function ReturnPage() {
             rentalDuration: 2,
             interestRate: 1.4,
             actionButtonStyle: 'RETURN',
-            didClickActionButton: sayHello
+            didClickActionButton: () => {}
         },
         {
             address: '0x280956156bfbb02959adcac28e50af9ed49c1f21',
@@ -27,7 +48,7 @@ function ReturnPage() {
             rentalDuration: 2,
             interestRate: 1.4,
             actionButtonStyle: 'RETURN',
-            didClickActionButton: sayHello
+            didClickActionButton: () => {}
         },
         {
             address: '0x280956156bfbb02959adcac28e50af9ed49c1f21',
@@ -39,7 +60,7 @@ function ReturnPage() {
             rentalDuration: 2,
             interestRate: 1.4,
             actionButtonStyle: 'RETURN',
-            didClickActionButton: sayHello
+            didClickActionButton: () => {}
         }
     ];
     return <NFTCardGrid data={nfts} />
