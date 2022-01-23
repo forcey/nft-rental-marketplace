@@ -26,6 +26,7 @@ function BrowsePage() {
             if (!await web3provider.Enable(false)) {
                 // If the user didn't sign in, don't load listings.
                 // In the future maybe this can be upgraded to an infura provider for read-only access.
+                setError("Please login first.");
                 return;
             }
             const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, web3provider.signer);
