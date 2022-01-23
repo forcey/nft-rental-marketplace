@@ -17,24 +17,34 @@ class Web3Provider {
         return new Web3Provider();
     }
 
-    isEnabled(){
-        return (this.provider !== null);
+    async isEnabled() {
+        return (this.provider !== null && (await this.provider.listAccounts()).length);
     }
 
-    async Enable(){
-        if (this.provider !== null) return;
+    // If popup == true, will pop the metamask login window if not connected.
+    // If popup == false, will try to initialize without popping the window.
+    // In both cases, returns a Promise<bool> to indicate whether the login was successful.
+    async Enable(popup){
+        if (await this.isEnabled()) {
+            return true;
+        }
         
         if (typeof window.ethereum != undefined) {
-            var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-
+            if (popup) {
+                var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                this.account = accounts[0];
+            }
             this.provider = new ethers.providers.Web3Provider(window.ethereum);
             this.signer = this.provider.getSigner();
-            this.account = accounts[0];
 
             window.ethereum.on('accountsChanged', function () {
                 window.location.reload();
             });
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
         }
+        return await this.isEnabled();
     }
 
     static getInstance () {
