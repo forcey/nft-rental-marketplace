@@ -39,7 +39,7 @@ function BrowsePage() {
             }
             var availableListings = [];
             for (const listing of fetchedListings) {
-                if (listing.rentalStatus != RentalStatus.Available) {
+                if (listing.rentalStatus !== RentalStatus.Available) {
                     continue;
                 }
                 const tokenId = listing.tokenId.toString();
