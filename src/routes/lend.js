@@ -4,29 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import CreateListingModal from '../components/CreateListingModal';
-import { requestAccount } from "../utils/common";
+import web3provider from "../utils/web3provider";
 
 import FakeNFTContract from "../abis/FakeNFT.json";
 import ContractAddress from "../abis/contract-address.json";
-
-// TODO: temporary - this should be made global state in the future.
-async function getAccount() {
-    if (typeof window.ethereum != "undefined" && typeof provider == "undefined") {
-        await requestAccount();
-
-        window.ethereum.on('accountsChanged', (accounts) => {
-            window.location.reload();
-        });
-        window.ethereum.on('chainChanged', (chainId) => {
-            window.location.reload();
-        });
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner()
-        return [provider, signer];
-    }
-    return [];
-}
 
 function LendPage() {
     const didFetchNFTsInUserWalletRef = useRef(false);
@@ -73,9 +54,9 @@ function LendPage() {
                 });
         }
 
-        const loadFakeNFT = async (provider, signer) => {
-            const contract = new ethers.Contract(ContractAddress.FakeNFT, FakeNFTContract.abi, signer);
-            const walletAddress = await signer.getAddress();
+        const loadFakeNFT = async () => {
+            const contract = new ethers.Contract(ContractAddress.FakeNFT, FakeNFTContract.abi, web3provider.signer);
+            const walletAddress = await web3provider.signer.getAddress();
             const balance = await contract.balanceOf(walletAddress);
             var fetchedNFTs = [];
             for (var i = 0; i < balance; i++) {
@@ -94,13 +75,13 @@ function LendPage() {
         }
 
         (async () => {
-            const [provider, signer] = await getAccount();
-            if (typeof signer == "undefined") {
+            await web3provider.Enable(false);
+            if (!await web3provider.isEnabled()) {
                 // If the user didn't sign in, don't load NFTs.
                 return;
             }
-            const walletAddress = await signer.getAddress();
-            const chainId = await signer.getChainId();
+            const walletAddress = await web3provider.signer.getAddress();
+            const chainId = await web3provider.signer.getChainId();
 
             switch (chainId) {
                 case 1:
@@ -114,7 +95,7 @@ function LendPage() {
                 default:
                     // Unknown, maybe local network?
                     // Try to load fake NFTs
-                    loadFakeNFT(provider, signer);
+                    loadFakeNFT();
                     break;
             }
         })();
