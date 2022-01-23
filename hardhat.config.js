@@ -5,7 +5,7 @@
  require("dotenv").config();
  
  // Possible network values
- const TEST_NETWORK = "TEST_NETWORK"
+ const RINKEBY = "RINKEBY"
  const LOCAL_NETWORK = "LOCAL_NETWORK"
  
  // By default network is set to local, change it to TEST_NETWORK to make a switch
@@ -15,9 +15,9 @@
  const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY;
  
  let networks = {};
- if (NETWORK == TEST_NETWORK) {
+ if (NETWORK == RINKEBY) {
     networks = {
-     test_network: {
+      RINKEBY: {
        url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
        accounts: [`0x${WALLET_PRIVATE_KEY}`]
      }

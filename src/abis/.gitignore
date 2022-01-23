@@ -1,2 +1,3 @@
-# Ignore contract address on a local deployment.
-contract-address.json
+# Ignore local deployment files
+localhost/*
+hardhat/*

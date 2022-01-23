@@ -3,8 +3,8 @@ import { Container, Alert } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import { ethers } from "ethers";
-import KasuContract from "../abis/Kasu.json";
-import ContractAddress from "../abis/contract-address.json";
+import KasuContract from "../abis/.active/Kasu.json";
+import ContractAddress from "../abis/.active/contract-address.json";
 import { RentalStatus } from "../abis/constants";
 
 function BrowsePage() {

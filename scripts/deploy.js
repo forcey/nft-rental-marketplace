@@ -1,3 +1,5 @@
+const fs = require("fs");
+var assert = require("assert");
 const hre = require("hardhat");
 
 async function deployContract(name) {
@@ -26,7 +28,15 @@ function removeNumericKeys(object) {
     return cleanObj;
 }
 
+async function check_deployment(){
+    const active_abi = fs.realpathSync(__dirname + '/../src/abis/.active/').split('/').reverse()[0]
+    assert(active_abi === hre.network.name,
+         `Active ABI: "${active_abi}" does not match hardhat network: "${hre.network.name}",
+         change the symlink by using "source .env && _select <network>"`)
+}
+
 async function main() {
+    await check_deployment()
     const accounts = await hre.ethers.getSigners();
 
     const kasuContract = await deployContract("Kasu");
@@ -56,8 +66,7 @@ async function main() {
 }
 
 function saveFrontendFiles(contracts) {
-    const fs = require("fs");
-    const contractsDir = __dirname + "/../src/abis";
+    const contractsDir = __dirname + "/../src/abis/" + hre.network.name ;
 
     if (!fs.existsSync(contractsDir)) {
         fs.mkdirSync(contractsDir);

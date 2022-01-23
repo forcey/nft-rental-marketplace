@@ -5,8 +5,8 @@ import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import CreateListingModal from '../components/CreateListingModal';
 import LoginService from '../utils/LoginService';
-import FakeNFTContract from "../abis/FakeNFT.json";
-import ContractAddress from "../abis/contract-address.json";
+import FakeNFTContract from "../abis/.active/FakeNFT.json";
+import ContractAddress from "../abis/.active/contract-address.json";
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
