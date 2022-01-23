@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "./KasuStorage.sol";
 import "./KasuMath.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract Kasu is KasuStorage, KasuMath {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -120,18 +121,34 @@ contract Kasu is KasuStorage, KasuMath {
 
     // [Feature 3] Borrower's dashboard
     // borrower can see all the NFTs they borrowed
-    function viewRentedListings(uint256 listingId) public {
-
+    function viewRentedListings(address borrowerAddress) public view returns (Listing[] memory){
+        // Iterating with a guard is expesnive...
+        uint256[] memory listingIds = _getListingIds();
+        Listing[] memory listings = new Listing[](listingIds.length);
+        for (uint i = 0; i < listingIds.length; i++) {
+            Listing memory listing = _getListingById(listingIds[i]);
+            if (listing.rental.borrowerAddress == borrowerAddress){
+                listings[i] = listing;
+            }
+        }
+        return listings;
     }
 
     // [Feature 3] Borrower's dashboard
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
-    function returnNFT(uint256 listingId) public {
-
+    function returnNFT(uint256 listingId) public payable{
+        Listing memory listing = _getListingById(listingId);
+        IERC721(listing.tokenAddress).safeTransferFrom(listing.rental.borrowerAddress,
+                                                       listing.lenderAddress,
+                                                       listing.tokenId);
+        payable(listing.rental.borrowerAddress).call{value: listing.collateralRequired};
+        uint elapsedRentalTime = block.timestamp - listing.rental.rentedAt;
+        uint256 interestAmount = KasuMath._calculateInterest(_getListingById(listingId), elapsedRentalTime);
+        payable(listing.lenderAddress).call{value: interestAmount};
+        _deleteListing(listingId);
     }
 
-     // helper functions
-
+    // helper functions
     function validateListingNFT(Listing memory listing) private pure {
         require(listing.tokenId != 0, "validateListingNFT:: TokenId cannot be empty");
         require(listing.tokenAddress != address(0), "validateListingNFT:: TokenAddress cannot be empty");
