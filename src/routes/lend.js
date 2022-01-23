@@ -75,8 +75,7 @@ function LendPage() {
         }
 
         (async () => {
-            await web3provider.Enable(false);
-            if (!await web3provider.isEnabled()) {
+            if (!await web3provider.Enable(false)) {
                 // If the user didn't sign in, don't load NFTs.
                 return;
             }

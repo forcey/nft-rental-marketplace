@@ -23,8 +23,7 @@ function BrowsePage() {
         didFetchListingsRef.current = true;
 
         (async () => {
-            await web3provider.Enable(false);
-            if (!await web3provider.isEnabled()) {
+            if (!await web3provider.Enable(false)) {
                 // If the user didn't sign in, don't load listings.
                 // In the future maybe this can be upgraded to an infura provider for read-only access.
                 return;
