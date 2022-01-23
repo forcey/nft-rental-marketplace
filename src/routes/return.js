@@ -10,8 +10,11 @@ function ReturnPage() {
     };
 
     useEffect(() => {
-        LoginService.getInstance().attach(onLogin);
-        return () => LoginService.getInstance().detach(onLogin);
+        LoginService.getInstance().onLogin(onLogin);
+        if (LoginService.getInstance().provider != null) {
+            onLogin(LoginService.getInstance().walletAddress);
+        }
+        return () => LoginService.getInstance().detachLoginObserver(onLogin);
     }, []);
 
     if (!walletAddress) {
