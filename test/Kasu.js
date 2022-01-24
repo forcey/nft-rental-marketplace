@@ -180,4 +180,33 @@ describe("Kasu", function () {
       ).to.be.revertedWith("not an available listing");
     });
   });
+
+  describe("viewOwnedOngoingListingsAndRentals", function () {
+    it("should return an empty array if user has no listings and rentals", async function () {
+      const returnedValue = await contract.connect(owner).viewOwnedOngoingListingsAndRentals()
+      expect(
+        returnedValue
+      ).to.be.an('array').to.have.lengthOf(0);
+    });
+
+    it("should return a non-empty array after the owner lists an NFT", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      await contract.connect(owner).listNFT(TOKEN_ID_1, TOKEN_ADDRESS, 1, 2, 3);
+      const returnedValue = await contract.connect(owner).viewOwnedOngoingListingsAndRentals();
+      await expect(
+        returnedValue
+      ).to.be.an('array').to.have.lengthOf(1);
+    });
+
+    it("should not return other user's listings and rentals", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      await contract.connect(owner).listNFT(TOKEN_ID_1, TOKEN_ADDRESS, 1, 2, 3);
+      const returnedValue = await contract.connect(account1).viewOwnedOngoingListingsAndRentals();
+      await expect(
+        returnedValue
+      ).to.be.an('array').to.have.lengthOf(0);
+    });
+  });
 });
