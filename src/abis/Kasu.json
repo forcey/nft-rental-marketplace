@@ -53,6 +53,19 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "listingId",
+          "type": "uint256"
+        }
+      ],
+      "name": "TerminateRental",
+      "type": "event"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
