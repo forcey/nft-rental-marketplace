@@ -6,6 +6,8 @@ import "hardhat/console.sol";
 import "./KasuStorage.sol";
 
 contract Kasu is KasuStorage {
+    using EnumerableSet for EnumerableSet.UintSet;
+
     // Events
     event ListNFT(
         uint256 listingId,
@@ -39,10 +41,19 @@ contract Kasu is KasuStorage {
     }
 
     // [Feature 2] Lender's dashboard
-    // Front end will pass in owner's token ids and return all the listings
-    function viewOwnerListings(address ownerAddress) public returns (Listing[] memory){
-
+    // Returns a list of all the listings owned by the sender
+    function viewOwnedOngoingListingsAndRentals() public view returns (Listing[] memory){
+        uint numListings = listingsSet.length();
+        Listing[] memory ownerListings = new Listing[](numListings);
+        for (uint i = 0; i < numListings; i++) {
+            Listing memory listing = _getListingById(listingsSet.at(i));
+            if (listing.lenderAddress == msg.sender) {
+                ownerListings[i] = listing;
+            }
+        }
+        return ownerListings;
     }
+
     // [Feature 2] Lender's dashboard
     // Lender can list NFT and store all this information in Listing
     function listNFT(uint256 tokenId, address tokenAddress, uint16 duration, uint16 dailyInterestRate, uint256 collateralRequired) public {
@@ -76,7 +87,7 @@ contract Kasu is KasuStorage {
             listing.dailyInterestRate,
             listing.collateralRequired
         );
-    }  
+    }
 
     // [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
