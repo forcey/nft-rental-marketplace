@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Container, Alert } from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import { ethers } from "ethers";
 import KasuContract from "../abis/Kasu.json";
 import ContractAddress from "../abis/contract-address.json";
-import { RentalStatus } from "../abis/constants";
+import { isRentalAvailable } from "../utils/common";
 
 function BrowsePage() {
     const [listings, setListings] = useState([]);
@@ -21,9 +21,10 @@ function BrowsePage() {
                 setError(e.toString());
                 return;
             }
+            setError(null);
             const availableListings = [];
             for (const listing of fetchedListings) {
-                if (listing.rentalStatus !== RentalStatus.Available) {
+                if (!isRentalAvailable(listing)) {
                     continue;
                 }
                 const tokenId = listing.tokenId.toString();
@@ -38,7 +39,7 @@ function BrowsePage() {
                     rentalDuration: listing.duration,
                     interestRate: listing.dailyInterestRate,
                     actionButtonStyle: 'BORROW',
-                    didClickActionButton: () => {},
+                    didClickActionButton: () => { },
                 });
             }
             setListings(listings.concat(availableListings));
@@ -67,19 +68,19 @@ function BrowsePage() {
             });
     });
 
-    if (!LoginService.getInstance().provider) {
-        return (
-            <Container>
-                <h4>Connect Your Wallet</h4>
-            </Container>
-        );
+    if (!LoginService.getInstance().isLoggedIn) {
+        return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
     if (error) {
         return (<Alert variant="danger">{error}</Alert>);
     }
 
-    return <NFTCardGrid data={listings} />
+    if (listings.length) {
+        return <NFTCardGrid data={listings} />
+    } else {
+        return (<Alert variant="primary">No listings available</Alert>);
+    }
 }
 
 export default BrowsePage;

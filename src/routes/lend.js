@@ -8,9 +8,7 @@ import LoginService from '../utils/LoginService';
 import FakeNFTContract from "../abis/FakeNFT.json";
 import ContractAddress from "../abis/contract-address.json";
 import KasuContract from "../abis/Kasu.json";
-
-const AVAILABLE_STATUS = 1;
-const UNAVAILABLE_STATUS = 2;
+import { isRentalAvailable } from "../utils/common";
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
@@ -109,7 +107,7 @@ function LendPage() {
         contract.viewOwnedOngoingListingsAndRentals()
           .then((fetchedListingsAndRentals) => {
             const ongoingListings = fetchedListingsAndRentals
-                                .filter(obj => obj.rentalStatus === AVAILABLE_STATUS )
+                                .filter(obj => isRentalAvailable(obj))
                                 .map(obj => {
                                     return {
                                     address: obj.tokenAddress,
@@ -124,7 +122,7 @@ function LendPage() {
                                     };
                                 });
             const ongoingRentals = fetchedListingsAndRentals
-                                    .filter(obj => obj.rentalStatus === UNAVAILABLE_STATUS )
+                                    .filter(obj => !isRentalAvailable(obj))
                                     .map(obj => {
                                         const isTerminatable = Date.now() / 1000 >= (obj.rental.rentedAt).toNumber() + obj.duration * 86400;
                                         return {

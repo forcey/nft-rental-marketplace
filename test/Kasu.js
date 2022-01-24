@@ -15,12 +15,6 @@ const TOKEN_ID_2 = 200;
 const TOKEN_ADDRESS = "0x5f4a54E29ccb8a02CDF7D7BFa8a0999A8330CCeD"
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-const RentalStatus = {
-  None: 0,
-  Available: 1,
-  Unavailable: 2,
-};
-
 describe("Kasu", function () {
 
   beforeEach("deploy contract", async () => {
@@ -85,10 +79,8 @@ describe("Kasu", function () {
           collateralRequired: ethers.BigNumber.from(3),
           rental: {
             borrowerAddress: ZERO_ADDRESS,
-            rentDuration: 0,
             rentedAt: ethers.BigNumber.from(0),
-          },
-          rentalStatus: RentalStatus.Available
+          }
         },
         {
           id: ethers.BigNumber.from(2),
@@ -100,10 +92,8 @@ describe("Kasu", function () {
           collateralRequired: ethers.BigNumber.from(6),
           rental: {
             borrowerAddress: ZERO_ADDRESS,
-            rentDuration: 0,
             rentedAt: ethers.BigNumber.from(0),
-          },
-          rentalStatus: RentalStatus.Available
+          }
         }
       ])
     })
@@ -162,10 +152,8 @@ describe("Kasu", function () {
           collateralRequired: ethers.utils.parseEther("10"),
           rental: {
             borrowerAddress: account1.address,
-            rentDuration: 5,
             rentedAt: ethers.BigNumber.from(block.timestamp),
-          },
-          rentalStatus: RentalStatus.Unavailable
+          }
         }]);
     });
 
