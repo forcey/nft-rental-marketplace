@@ -1,15 +1,5 @@
 const hre = require("hardhat");
-
-
-async function deployContract(name) {
-    const factory = await hre.ethers.getContractFactory(name);
-    const contract = await factory.deploy();
-
-    await contract.deployed();
-    console.log(`${name} Contract address:`, contract.address);
-
-    return contract;
-}
+const utils = require("./deployUtils");
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -30,8 +20,11 @@ function removeNumericKeys(object) {
 async function main() {
     const accounts = await hre.ethers.getSigners();
 
-    const kasuContract = await deployContract("Kasu");
-    const fakeNFT = await deployContract("FakeNFT");
+    const kasuContract = await utils.deployContract("Kasu");
+    const fakeNFT = await utils.deployContract("FakeNFT");
+    console.log(`Kasu Contract address:`, kasuContract.address);
+    console.log(`FakeNFT Contract address:`, fakeNFT.address);
+
     saveFrontendFiles({
         "Kasu": kasuContract,
         "FakeNFT": fakeNFT

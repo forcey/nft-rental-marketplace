@@ -6,11 +6,12 @@ export type NFTDisplayable = {
     name: string,
     contractName: string,
     imageURI: string,
+    listingID?: number,
     collateral?: number,
     rentalDuration?: number,
     interestRate?: number,
     actionButtonStyle?: 'BORROW' | 'LIST' | 'UNLIST' | 'TERMINATE_RENTAL' | 'RETURN',
-    didClickActionButton?: ((tokenID: string, tokenAddress: string) => void),
+    didClickActionButton?: ((tokenID: string, tokenAddress: string, listingID: number | null | undefined) => void),
 };
 
 function NFTCard(props: NFTDisplayable) {
@@ -43,7 +44,7 @@ function NFTCard(props: NFTDisplayable) {
         }
     }
     const didClickActionButton = () => {
-        props.didClickActionButton && props.didClickActionButton(props.tokenID, props.address);
+        props.didClickActionButton && props.didClickActionButton(props.tokenID, props.address, props.listingID);
     };
     return (
         <Card style={styles.cardContainer}>

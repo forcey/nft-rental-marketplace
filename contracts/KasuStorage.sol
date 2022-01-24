@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 abstract contract KasuStorage {
     enum RentalStatus {
@@ -65,6 +66,10 @@ abstract contract KasuStorage {
             listingIds[i] = listingsSet.at(i);
         }
         return listingIds;
+    }
+
+    function _listingExists(uint256 id) internal view returns (bool) {
+        return listingsSet.contains(id);
     }
 
     // gets the listing by id.
