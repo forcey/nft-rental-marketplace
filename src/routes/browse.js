@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Alert } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
@@ -54,6 +54,16 @@ function BrowsePage() {
             LoginService.getInstance().detachChainChangedObserver(fetchListings);
         };
     }, [fetchListings]);
+
+    // One-time Effects
+    const didRunOneTimeEffectRef = useRef(false);
+    useEffect(() => {
+        if (didRunOneTimeEffectRef.current) { return; }
+        didRunOneTimeEffectRef.current = true;
+        if (LoginService.getInstance().provider != null) {
+            fetchListings();
+        }
+    });
 
     if (!LoginService.getInstance().provider) {
         return (
