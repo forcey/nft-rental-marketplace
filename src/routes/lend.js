@@ -184,7 +184,7 @@ function LendPage() {
         if (didListNFT) {
             fetchOwnedOngoingListingsAndRentals();
         }
-    }, [setListingModalState]);
+    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals]);
 
     if (!LoginService.getInstance().isLoggedIn) {
         return (
