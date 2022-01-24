@@ -68,7 +68,7 @@ function BrowsePage() {
             });
     });
 
-    if (!LoginService.getInstance().provider) {
+    if (!LoginService.getInstance().isLoggedIn()) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
