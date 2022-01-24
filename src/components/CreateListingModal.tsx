@@ -10,7 +10,7 @@ interface Props {
     tokenID: string,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean) => void
+    onShouldClose: (didListNFT: boolean) => void,
 }
 
 function CreateListingModal(props: Props) {
