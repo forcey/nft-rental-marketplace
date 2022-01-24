@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
@@ -47,9 +45,9 @@ function LendPage() {
     }, [setNFTsInUserWallet, setError, listNFT]);
 
     const loadFakeNFT = useCallback(async () => {
-        const abiManager = new ABIManager(LoginService.getInstance().chainId);
         const signer = LoginService.getInstance().signer;
-        const contract = new ethers.Contract(abiManager.ContractAddress.FakeNFT, abiManager.FakeNFT.abi, signer);
+        const abiManager = new ABIManager(signer.getChainId);
+        const contract = abiManager.FakeNFTContract(signer);
         const walletAddress = await signer.getAddress();
         const balance = await contract.balanceOf(walletAddress);
         var fetchedNFTs = [];

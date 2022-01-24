@@ -1,20 +1,6 @@
-/* index file
-
-import contractAddress from "./contract-address.json";
-import FakeNFT from "./FakeNFT.json";
-import Kasu from "./Kasu.json"
-
- const ABIIndex = {
-  contractAddress : contractAddress,
-  FakeNFT : FakeNFT,
-  Kasu : Kasu,
-}
-export {ABIIndex}
-
-*/ 
-
-import hardhat_abis from '../abis/hardhat'
-import rinkeby_abis from '../abis/rinkeby'
+import { ethers } from 'ethers';
+import hardhat_abis from '../abis/hardhat';
+import rinkeby_abis from '../abis/rinkeby';
 
 class ABIManager{
   chainId = null;
@@ -34,20 +20,29 @@ class ABIManager{
     if (jsonFiles !== undefined){
       return jsonFiles
     }
-    return hardhat_abis()
+    return hardhat_abis
   }
   
-  get KasuContract() {
+  get Kasu() {
       return this.getABIDirectory().Kasu;
   }
   
-  get ContractAddress() {
+  get contractAddress() {
       return this.getABIDirectory().contractAddress;
   }
   
-  get FakeNFTContract() {
+  get FakeNFT() {
       return this.getABIDirectory().FakeNFT;
   }
+
+  KasuContract(signer){
+    return new ethers.Contract(this.contractAddress.Kasu, this.Kasu.abi, signer);
+  }
+
+  FakeNFTContract(signer) {
+    return new ethers.Contract(this.contractAddress.FakeNFT, this.FakeNFT.abi, signer);
+  }
+
 }
 
 export {ABIManager, }
