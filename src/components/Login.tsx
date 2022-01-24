@@ -1,6 +1,6 @@
 
 import { Button, Navbar, Badge } from 'react-bootstrap';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import LoginService from '../utils/LoginService';
 import { ethers } from 'ethers';
@@ -24,6 +24,19 @@ function Login() {
             LoginService.getInstance().detachChainChangedObserver(onChainChange);
         }
     }, []);
+
+    // One-time Effects
+    const didRunOneTimeEffectRef = useRef(false);
+    useEffect(() => {
+        if (didRunOneTimeEffectRef.current) { return; }
+        didRunOneTimeEffectRef.current = true;
+        LoginService.getInstance().maybeLogin()
+            .then(didLoginSuccessfully => {
+                if (!didLoginSuccessfully) { return; }
+                setWalletAddress(LoginService.getInstance().walletAddress);
+                setChainName(LoginService.getInstance().chainName);
+            });
+    }, [setWalletAddress]);
 
     if (LoginService.getInstance().isLoggedIn) {
         return (

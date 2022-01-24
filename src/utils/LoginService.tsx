@@ -51,8 +51,9 @@ export default class LoginService {
             1: "Mainnet",
             4: "Rinkeby",
         };
-        if (LoginService.instance._chainId == null) { return "Unknown" }
-        return chainMapping[LoginService.instance._chainId];
+        const chainId = LoginService.instance._chainId ?? -1;
+        if (!(chainId in chainMapping)) { return "Unknown" }
+        return chainMapping[chainId];
     }
 
     public get isLoggedIn() {
