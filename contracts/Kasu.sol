@@ -39,7 +39,7 @@ contract Kasu is KasuStorage, KasuMath {
     // Front end will invoke this function to deposit collateral and receive the NFT to the borrower's address
     function borrow(uint256 listingId) public payable {
         require(_listingExists(listingId), "listing does not exist");
-        
+
         Listing storage listing = _getListingById(listingId);
         require(listing.rentalStatus == RentalStatus.Available, "not an available listing");
         require(listing.lenderAddress != msg.sender, "cannot rent your own token");
@@ -59,12 +59,23 @@ contract Kasu is KasuStorage, KasuMath {
     // [Feature 2] Lender's dashboard
     // Returns a list of all the listings owned by the sender
     function viewOwnedOngoingListingsAndRentals() public view returns (Listing[] memory){
-        uint numListings = listingsSet.length();
-        Listing[] memory ownerListings = new Listing[](numListings);
-        for (uint i = 0; i < numListings; i++) {
+        // Note: Dynamic arrays are not allowed unless they are storage
+        // so we need to allocate a statically sized-array to return.
+        // We can probably optimize this, but this should functionally work for now.
+        uint listingsOwned = 0;
+        for (uint i = 0; i < listingsSet.length(); i++) {
             Listing memory listing = _getListingById(listingsSet.at(i));
             if (listing.lenderAddress == msg.sender) {
-                ownerListings[i] = listing;
+                listingsOwned++;
+            }
+        }
+        Listing[] memory ownerListings = new Listing[](listingsOwned);
+        uint j = 0;
+        for (uint i = 0; i < listingsSet.length(); i++) {
+            Listing memory listing = _getListingById(listingsSet.at(i));
+            if (listing.lenderAddress == msg.sender) {
+                ownerListings[j] = listing;
+                j++;
             }
         }
         return ownerListings;
