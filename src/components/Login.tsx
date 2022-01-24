@@ -25,7 +25,7 @@ function Login() {
         }
     }, []);
 
-    if (LoginService.getInstance()?.chainId != null) {
+    if (LoginService.getInstance().isLoggedIn) {
         return (
             <Navbar.Text>
                 Wallet: {walletAddress}

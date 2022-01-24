@@ -18,7 +18,6 @@ function LendPage() {
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
     const [listingModalState, setListingModalState] = useState({ isShown: false, tokenID: '', tokenAddress: ''});
-    const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().loggedInUserAddress);
     const listNFT = useCallback((tokenID, tokenAddress) => {
         setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
     }, [setListingModalState]);
@@ -150,36 +149,37 @@ function LendPage() {
         loadOwnedNFTsBasedOnChainId(chainId);
     }, [loadOwnedNFTsBasedOnChainId]);
 
-    const setWalletAddressAndLoadOwnedNFTs = useCallback((provider, signer, walletAddress, chainId) => {
-        setWalletAddress(walletAddress);
+    const loadOwnedNFTs = useCallback((provider, signer, walletAddress, chainId) => {
         loadOwnedNFTsBasedOnChainId(chainId);
         fetchOwnedOngoingListingsAndRentals();
-    }, [setWalletAddress, loadOwnedNFTsBasedOnChainId, fetchOwnedOngoingListingsAndRentals]);
+    }, [loadOwnedNFTsBasedOnChainId, fetchOwnedOngoingListingsAndRentals]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);
     useEffect(() => {
         if (didRunOneTimeEffectRef.current) { return; }
         didRunOneTimeEffectRef.current = true;
-        if (LoginService.getInstance().provider != null) {
-            setWalletAddressAndLoadOwnedNFTs(
-                LoginService.getInstance().provider,
-                LoginService.getInstance().signer,
-                LoginService.getInstance().walletAddress,
-                LoginService.getInstance().chainId
-            );
-        }
-    }, [setWalletAddressAndLoadOwnedNFTs]);
+        LoginService.getInstance().maybeLogin()
+            .then(didLoginSuccessfully => {
+                if (!didLoginSuccessfully) { return; }
+                loadOwnedNFTs(
+                    LoginService.getInstance().provider,
+                    LoginService.getInstance().signer,
+                    LoginService.getInstance().walletAddress,
+                    LoginService.getInstance().chainId
+                );
+            });
+    }, [loadOwnedNFTs]);
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(setWalletAddressAndLoadOwnedNFTs);
+        LoginService.getInstance().onLogin(loadOwnedNFTs);
         LoginService.getInstance().onChainChanged(onChainChanged);
         return () => {
-            LoginService.getInstance().detachLoginObserver(setWalletAddressAndLoadOwnedNFTs)
+            LoginService.getInstance().detachLoginObserver(loadOwnedNFTs)
             LoginService.getInstance().detachChainChangedObserver(onChainChanged);
         };
-    }, [onChainChanged, setWalletAddressAndLoadOwnedNFTs]);
+    }, [onChainChanged, loadOwnedNFTs]);
 
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
@@ -188,7 +188,7 @@ function LendPage() {
         }
     }, [setListingModalState]);
 
-    if (!walletAddress) {
+    if (!LoginService.getInstance().isLoggedIn) {
         return (
             <Container>
                 <h4>Connect Your Wallet</h4>
