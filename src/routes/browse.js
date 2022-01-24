@@ -60,9 +60,11 @@ function BrowsePage() {
     useEffect(() => {
         if (didRunOneTimeEffectRef.current) { return; }
         didRunOneTimeEffectRef.current = true;
-        if (LoginService.getInstance().provider != null) {
-            fetchListings();
-        }
+        LoginService.getInstance().maybeLogin()
+            .then(didLoginSuccessfully => {
+                if (!didLoginSuccessfully) { return; }
+                fetchListings();
+            });
     });
 
     if (!LoginService.getInstance().provider) {

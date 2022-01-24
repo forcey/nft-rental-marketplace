@@ -11,14 +11,14 @@ export default class LoginService {
     private _loginObservers: LoginServiceObserver[] = [];
     private _accountChangedObservers: AccountsChangedObserver[] = [];
     private _chainChangedObservers: ChainChangedObserver[] = [];
-    private _provider: ethers.providers.Web3Provider | null;
-    private _signer: ethers.Signer | null;
+    private _provider: ethers.providers.Web3Provider;
+    private _signer: ethers.Signer;
     private _walletAddress: string | null;
     private _chainId: number | null;
 
     private constructor() {
-        this._provider = null;
-        this._signer = null;
+        this._provider = new ethers.providers.Web3Provider(window.ethereum);
+        this._signer = this._provider.getSigner();
         this._walletAddress = null;
         this._chainId = null;
     }
@@ -51,35 +51,61 @@ export default class LoginService {
             1: "Mainnet",
             4: "Rinkeby",
         };
-        if (LoginService.instance._chainId == null) { return "Unknown" }
-        return chainMapping[LoginService.instance._chainId];
+        const chainId = LoginService.instance._chainId ?? -1;
+        if (!(chainId in chainMapping)) { return "Unknown" }
+        return chainMapping[chainId];
+    }
+
+    public get isLoggedIn() {
+        return LoginService.instance._provider !== null && LoginService.instance._walletAddress !== null;
     }
 
     public linkAccount() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
         // Prompt user for account connections
-        provider.send("eth_requestAccounts", [])
+        LoginService.instance._provider.send("eth_requestAccounts", [])
             .then((data) => {
                 (async () => {
-                    window.ethereum.on('accountsChanged', (accounts: Array<string>) => {
-                        LoginService.instance._walletAddress = accounts[0];
-                        LoginService.instance._accountChangedObservers.forEach(observer => observer(accounts));
-                    });
-                    window.ethereum.on('chainChanged', (chainId: any) => {
-                        LoginService.instance._chainId = Number(chainId);
-                        LoginService.instance._chainChangedObservers.forEach(observer => observer(Number(chainId)));
-                    });
-                    LoginService.instance._provider = provider;
-                    LoginService.instance._signer = provider.getSigner();
-                    const chainId = await provider.getSigner().getChainId();
+                    LoginService.instance.attachObservers();
+                    const chainId = await LoginService.instance._signer.getChainId();
                     LoginService.instance._chainId = chainId;
                     LoginService.instance._walletAddress = data[0];
-                    LoginService.instance._loginObservers.forEach(observer => observer(provider, provider.getSigner(), data[0], chainId));
+                    LoginService.instance._loginObservers.forEach(observer => observer(LoginService.instance._provider, LoginService.instance._provider.getSigner(), data[0], chainId));
                 })();
             },
             (error) => {
                 console.log(error);
             });
+    }
+
+    // Attempts to connect without using the metamask prompt
+    public async maybeLogin(): Promise<boolean> {
+        const listAccountPromise = LoginService.instance.provider.listAccounts();
+        const getChainIDPromise = LoginService.instance._signer.getChainId();
+        const didLoginSuccessfullyPromise: Promise<boolean> = new Promise((resolve, reject) => {
+            Promise.all([listAccountPromise, getChainIDPromise]).then(values => {
+                const returnedAccounts = values[0]
+                const primaryWalletAddress = returnedAccounts[0];
+                const returnedChainID = values[1];
+                LoginService.getInstance()._walletAddress = primaryWalletAddress;
+                LoginService.getInstance()._chainId = returnedChainID;
+                if (returnedAccounts.length > 0) {
+                    LoginService.instance.attachObservers();
+                }
+                resolve(returnedAccounts.length > 0);
+            });
+        });
+        return didLoginSuccessfullyPromise;
+    }
+
+    private attachObservers() {
+        window.ethereum.on('accountsChanged', (accounts: Array<string>) => {
+            LoginService.instance._walletAddress = accounts[0];
+            LoginService.instance._accountChangedObservers.forEach(observer => observer(accounts));
+        });
+        window.ethereum.on('chainChanged', (chainId: any) => {
+            LoginService.instance._chainId = Number(chainId);
+            LoginService.instance._chainChangedObservers.forEach(observer => observer(Number(chainId)));
+        });
     }
 
     public onLogin(observer: LoginServiceObserver) {
