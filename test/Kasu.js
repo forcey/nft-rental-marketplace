@@ -4,6 +4,7 @@ var chai = require('chai');
 var chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 var expect = chai.expect;
+var assert = chai.assert;
 
 const utils = require("../scripts/deployUtils");
 
@@ -179,7 +180,6 @@ describe("Kasu", function () {
 
     it("should return a non-empty array after the owner lists an NFT", async function () {
       await fakeNFT.connect(owner).mint(1);
-      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
       await contract.connect(owner).listNFT(TOKEN_ID_1, TOKEN_ADDRESS, 1, 2, 3);
       const returnedValue = await contract.connect(owner).viewOwnedOngoingListingsAndRentals();
       await expect(
@@ -189,11 +189,92 @@ describe("Kasu", function () {
 
     it("should not return other user's listings and rentals", async function () {
       await fakeNFT.connect(owner).mint(1);
-      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
       await contract.connect(owner).listNFT(TOKEN_ID_1, TOKEN_ADDRESS, 1, 2, 3);
       const returnedValue = await contract.connect(account1).viewOwnedOngoingListingsAndRentals();
       await expect(
         returnedValue
+      ).to.be.an('array').to.have.lengthOf(0);
+    });
+  });
+
+  describe("terminateRental", function () {
+    it("should not be able to terminate a rental that is not yet due", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      await expect(
+        contract.connect(owner).terminateRental(1)
+      ).to.be.revertedWith("cannot terminate rental that is not yet due");
+    });
+
+    it("should emit an event upon successfully terminating a rental", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      const tx = await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      const block = await ethers.provider.getBlock(tx.blockNumber);
+      const sometimeAfterDueDate = block.timestamp + 86400 * (MAX_RENT_DURATION + 1)
+      await ethers.provider.send('evm_setNextBlockTimestamp', [sometimeAfterDueDate]);
+      await ethers.provider.send('evm_mine');
+      await expect(contract.connect(owner).terminateRental(1))
+				.to.emit(contract, "TerminateRental")
+				.withArgs(1);
+    });
+
+    it("lender should be able to receive collateral after terminating a rental", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      // 5 days * 1% * 10 ether = 0.5 ether, plus collateral of 10 ether
+      const collateralAmount = ethers.utils.parseEther( "10");
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, collateralAmount);
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      const tx = await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      const block = await ethers.provider.getBlock(tx.blockNumber);
+      const sometimeAfterDueDate = block.timestamp + 86400 * (MAX_RENT_DURATION + 1)
+      await ethers.provider.send('evm_setNextBlockTimestamp', [sometimeAfterDueDate]);
+      await ethers.provider.send('evm_mine');
+      const ownerBalanceBeforeCollectingCollateral = await ethers.provider.getBalance(owner.address);
+      const terminateTX = await contract.connect(owner).terminateRental(1);
+      const gasUsed = (await ethers.provider.getTransactionReceipt(terminateTX.hash)).gasUsed;
+      const gasPriceInWei = gasUsed.mul(terminateTX.gasPrice);
+      const expectedBalance = ownerBalanceBeforeCollectingCollateral.add(collateralAmount).sub(gasPriceInWei);
+      const actualBalance = await ethers.provider.getBalance(owner.address);
+      assert.equal(expectedBalance.eq(actualBalance), true);
+    });
+
+    it("should revert when terminating a rental that doesn't exist", async function () {
+      await expect(
+        contract.connect(owner).terminateRental(1)
+      ).to.be.revertedWith("validateListingNFT:: TokenId cannot be empty");
+    });
+
+    it("should revert when any other user tries to terminate the rental", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      await expect(
+        contract.connect(account1).terminateRental(1)
+      ).to.be.revertedWith("only the lender can terminate the rental");
+    });
+
+    it("rental and listing data should be removed upon terminating a rental", async function () {
+      await fakeNFT.connect(owner).mint(1);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
+      let ownedListingsAndRentals = await contract.connect(owner).viewOwnedOngoingListingsAndRentals()
+      expect(
+        ownedListingsAndRentals
+      ).to.be.an('array').to.have.lengthOf(1);
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      const tx = await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      const block = await ethers.provider.getBlock(tx.blockNumber);
+      const sometimeAfterDueDate = block.timestamp + 86400 * (MAX_RENT_DURATION + 1)
+      await ethers.provider.send('evm_setNextBlockTimestamp', [sometimeAfterDueDate]);
+      await ethers.provider.send('evm_mine');
+      await contract.connect(owner).terminateRental(1);
+      ownedListingsAndRentals = await contract.connect(owner).viewOwnedOngoingListingsAndRentals()
+      expect(
+        ownedListingsAndRentals
       ).to.be.an('array').to.have.lengthOf(0);
     });
   });
