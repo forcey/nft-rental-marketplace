@@ -33,15 +33,24 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
-        // TODO: Call smart contract API to list NFT
-        console.log("formValues", formValues.collateralRequired, formValues.rentalDuration, formValues.interestRate);
         const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
-        // contract.listNFT(token_id, token_address, )
-        console.log("clicked nft button...");
 
-
-        setShouldDisableListButton(true);
-        props.onShouldClose(true);
+        try {
+            contract.listNFT(
+                props.tokenID,
+                props.tokenAddress,
+                formValues.rentalDuration,
+                formValues.interestRate,
+                formValues.collateralRequired
+            ).then((response: any) => {
+                    // console.log("response", response);
+                    setShouldDisableListButton(true);
+                    props.onShouldClose(true);
+                }) ;
+        } catch (error: any) {
+            console.log("error", error.toString());
+            return;
+        }
     };
 
     const didClickCloseButton = () => {
