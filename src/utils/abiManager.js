@@ -35,6 +35,4 @@ class ABIManager{
   }
 }
 
-module.exports =  { 
-  ABIManager,
-};
+export {ABIManager, }
