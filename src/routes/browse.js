@@ -5,6 +5,7 @@ import NFTCardGrid from '../components/NFTCardGrid';
 import { ethers } from "ethers";
 import KasuContract from "../abis/Kasu.json";
 import ContractAddress from "../abis/contract-address.json";
+import { isRentalAvailable } from "../utils/common";
 
 function BrowsePage() {
     const [listings, setListings] = useState([]);
@@ -23,7 +24,7 @@ function BrowsePage() {
             setError(null);
             const availableListings = [];
             for (const listing of fetchedListings) {
-                if (!listing.rental.rentedAt.isZero()) {
+                if (!isRentalAvailable(listing)) {
                     continue;
                 }
                 const tokenId = listing.tokenId.toString();
