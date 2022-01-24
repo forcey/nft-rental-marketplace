@@ -49,7 +49,7 @@ function LendPage() {
     const loadFakeNFT = useCallback(async () => {
         const abiManager = new ABIManager(LoginService.getInstance().chainId);
         const signer = LoginService.getInstance().signer;
-        const contract = new ethers.Contract(abiManager.ContractAddress().FakeNFT, abiManager.FakeNFTContract().abi, signer);
+        const contract = new ethers.Contract(abiManager.ContractAddress.FakeNFT, abiManager.FakeNFT.abi, signer);
         const walletAddress = await signer.getAddress();
         const balance = await contract.balanceOf(walletAddress);
         var fetchedNFTs = [];

@@ -12,9 +12,7 @@ function BrowsePage() {
     const fetchListings = useCallback(() => {
         (async () => {
             const abiManager = new ABIManager(LoginService.getInstance().chainId);
-            const contract = new ethers.Contract(abiManager.ContractAddress().Kasu,
-                                                 abiManager.KasuContract().abi,
-                                                 LoginService.getInstance().signer);
+            const contract = new ethers.Contract(abiManager.ContractAddress.Kasu, abiManager.KasuContract.abi, LoginService.getInstance().signer);
             let fetchedListings = [];
             try {
                 fetchedListings = await contract.viewAllListings();

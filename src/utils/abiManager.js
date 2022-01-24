@@ -1,3 +1,21 @@
+/* index file
+
+import contractAddress from "./contract-address.json";
+import FakeNFT from "./FakeNFT.json";
+import Kasu from "./Kasu.json"
+
+ const ABIIndex = {
+  contractAddress : contractAddress,
+  FakeNFT : FakeNFT,
+  Kasu : Kasu,
+}
+export {ABIIndex}
+
+*/ 
+
+import hardhat_abis from '../abis/hardhat'
+import rinkeby_abis from '../abis/rinkeby'
+
 class ABIManager{
   chainId = null;
 
@@ -6,32 +24,29 @@ class ABIManager{
   }
   
   getABIDirectory(){
-    const ABIDirectory = __dirname +  '/../abis';
     const DirectoryByChainID = {
-      "1": "/mainnet",
-      "4": "/rinkeby",
-      "31337": "/hardhat",
+      // TODO: create mainnet ABIs, add index.js and import
+      // "1": mainnet,
+      "4": rinkeby_abis,
+      "31337": hardhat_abis,
     };
-    console.log(this.chainId)
-    const subDir = DirectoryByChainID[this.chainId];
-    console.log(ABIDirectory);
-    if (subDir !== undefined){
-      return ABIDirectory + subDir;
+    const jsonFiles = DirectoryByChainID[this.chainId];
+    if (jsonFiles !== undefined){
+      return jsonFiles
     }
-    console.log(`chainId: ${this.chainId} was not in mapping`)
-    return ABIDirectory + '/hardhat';
+    return hardhat_abis()
   }
   
-  async KasuContract() {
-      return await import(this.getABIDirectory() + '/Kasu.json');
+  get KasuContract() {
+      return this.getABIDirectory().Kasu;
   }
   
-  async ContractAddress(){
-      return await import(this.getABIDirectory() + '/contract-address.json');
+  get ContractAddress() {
+      return this.getABIDirectory().contractAddress;
   }
   
-  async FakeNFTContract() {
-      return await import(this.getABIDirectory() + '/FakeNFT.json');
+  get FakeNFTContract() {
+      return this.getABIDirectory().FakeNFT;
   }
 }
 
