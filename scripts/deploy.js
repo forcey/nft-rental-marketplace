@@ -1,5 +1,6 @@
 const hre = require("hardhat");
 
+
 async function deployContract(name) {
     const factory = await hre.ethers.getContractFactory(name);
     const contract = await factory.deploy();
@@ -57,7 +58,10 @@ async function main() {
 
 function saveFrontendFiles(contracts) {
     const fs = require("fs");
-    const contractsDir = __dirname + "/../src/abis";
+    const ABIManager  = require(__dirname + '/../src/utils/abiManager.js');
+    console.log(hre.network.config.chainId);
+    const abiManager = new ABIManager.ABIManager(hre.network.config.chainId);
+    const contractsDir = abiManager.getABIDirectory();
 
     if (!fs.existsSync(contractsDir)) {
         fs.mkdirSync(contractsDir);
