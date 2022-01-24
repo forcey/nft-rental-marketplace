@@ -182,9 +182,9 @@ function LendPage() {
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
         if (didListNFT) {
-            // TODO: Re-fetch listed NFTs
+            fetchOwnedOngoingListingsAndRentals();
         }
-    }, [setListingModalState]);
+    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals]);
 
     if (!LoginService.getInstance().isLoggedIn) {
         return (
