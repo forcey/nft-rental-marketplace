@@ -65,14 +65,7 @@ export default class LoginService {
         LoginService.instance._provider.send("eth_requestAccounts", [])
             .then((data) => {
                 (async () => {
-                    window.ethereum.on('accountsChanged', (accounts: Array<string>) => {
-                        LoginService.instance._walletAddress = accounts[0];
-                        LoginService.instance._accountChangedObservers.forEach(observer => observer(accounts));
-                    });
-                    window.ethereum.on('chainChanged', (chainId: any) => {
-                        LoginService.instance._chainId = Number(chainId);
-                        LoginService.instance._chainChangedObservers.forEach(observer => observer(Number(chainId)));
-                    });
+                    LoginService.instance.attachObservers();
                     const chainId = await LoginService.instance._signer.getChainId();
                     LoginService.instance._chainId = chainId;
                     LoginService.instance._walletAddress = data[0];
@@ -95,10 +88,24 @@ export default class LoginService {
                 const returnedChainID = values[1];
                 LoginService.getInstance()._walletAddress = primaryWalletAddress;
                 LoginService.getInstance()._chainId = returnedChainID;
+                if (returnedAccounts.length > 0) {
+                    LoginService.instance.attachObservers();
+                }
                 resolve(returnedAccounts.length > 0);
             });
         });
         return didLoginSuccessfullyPromise;
+    }
+
+    private attachObservers() {
+        window.ethereum.on('accountsChanged', (accounts: Array<string>) => {
+            LoginService.instance._walletAddress = accounts[0];
+            LoginService.instance._accountChangedObservers.forEach(observer => observer(accounts));
+        });
+        window.ethereum.on('chainChanged', (chainId: any) => {
+            LoginService.instance._chainId = Number(chainId);
+            LoginService.instance._chainChangedObservers.forEach(observer => observer(Number(chainId)));
+        });
     }
 
     public onLogin(observer: LoginServiceObserver) {
