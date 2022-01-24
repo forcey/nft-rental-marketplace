@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "./KasuStorage.sol";
+import "./KasuMath.sol";
 
-contract Kasu is KasuStorage {
+contract Kasu is KasuStorage, KasuMath {
     using EnumerableSet for EnumerableSet.UintSet;
 
     // Events
@@ -36,8 +37,23 @@ contract Kasu is KasuStorage {
 
     // [Feature 1] Main listings dashboard
     // Front end will invoke this function to deposit collateral and receive the NFT to the borrower's address
-    function borrow(uint256 listingId) public {
+    function borrow(uint256 listingId) public payable {
+        require(_listingExists(listingId), "listing does not exist");
+        
+        Listing storage listing = _getListingById(listingId);
+        require(listing.rentalStatus == RentalStatus.Available, "not an available listing");
+        require(listing.lenderAddress != msg.sender, "cannot rent your own token");
 
+        uint payment = _calculatePayment(listing);
+        require(msg.value == payment, "must send the exact payment");
+
+        listing.rental.borrowerAddress = payable(msg.sender);
+        listing.rental.rentDuration = listing.duration;
+        listing.rental.rentedAt = block.timestamp;
+        listing.rentalStatus = RentalStatus.Unavailable;
+
+        IERC721 token = IERC721(listing.tokenAddress);
+        token.safeTransferFrom(listing.lenderAddress, msg.sender, listing.tokenId);
     }
 
     // [Feature 2] Lender's dashboard
