@@ -1,5 +1,10 @@
+import { ethers } from 'ethers';
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
+
+import ContractAddress from "../abis/contract-address.json";
+import KasuContract from "../abis/Kasu.json";
+import LoginService from '../utils/LoginService';
 
 interface Props {
     tokenID: string,
@@ -13,10 +18,39 @@ function CreateListingModal(props: Props) {
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
     const isValidInterestRateRef = useRef(false);
+    
+    const [formValues, setFormValues] = useState({
+        collateralRequired: "",
+        rentalDuration: "",
+        interestRate: "",
+    });
+
+    const handleFormValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFormValues((formValues) => ({
+            ...formValues,
+            [event.target.name]: event.target.value,
+        }));
+    };
+
     const didClickListNFTButton = () => {
-        // TODO: Call smart contract API to list NFT
-        setShouldDisableListButton(true);
-        props.onShouldClose(true);
+        const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+
+        try {
+            contract.listNFT(
+                props.tokenID,
+                props.tokenAddress,
+                formValues.rentalDuration,
+                formValues.interestRate,
+                formValues.collateralRequired
+            ).then((response: any) => {
+                    // console.log("response", response);
+                    setShouldDisableListButton(true);
+                    props.onShouldClose(true);
+                }) ;
+        } catch (error: any) {
+            console.log("error", error.toString());
+            return;
+        }
     };
 
     const didClickCloseButton = () => {
@@ -57,7 +91,9 @@ function CreateListingModal(props: Props) {
                                     min="0"
                                     max="100"
                                     placeholder="1"
+                                    name="collateralRequired"
                                     onInput={validateCollateral}
+                                    onChange={handleFormValueChange}
                                     aria-label="Collateral Required"
                                     aria-describedby="basic-addon2"/>
                                 <InputGroup.Text id="basic-addon2">ETH</InputGroup.Text>
@@ -71,7 +107,9 @@ function CreateListingModal(props: Props) {
                                     min="1"
                                     max="120"
                                     placeholder="1"
+                                    name="rentalDuration"
                                     onInput={validateRentalDuration}
+                                    onChange={handleFormValueChange}
                                     aria-label="Rental Duration"
                                     aria-describedby="basic-addon2"/>
                                 <InputGroup.Text id="basic-addon2">days</InputGroup.Text>
@@ -85,7 +123,9 @@ function CreateListingModal(props: Props) {
                                     min="0"
                                     max="100"
                                     placeholder="1"
+                                    name="interestRate"
                                     onInput={validateInterestRate}
+                                    onChange={handleFormValueChange}
                                     aria-label="Interest Rate"
                                     aria-describedby="basic-addon2"/>
                                 <InputGroup.Text id="basic-addon2">%</InputGroup.Text>

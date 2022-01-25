@@ -6,12 +6,6 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 abstract contract KasuStorage {
-    enum RentalStatus {
-        None,
-        Available,
-        Unavailable
-    }
-
     // Rent will be calcualted as collateral required (1ETH) * Daily interest rate (1%) * duration (5 days)
     // 1ETH * 1% daily interest rate * 5 days = 0.05ETH total
     struct Listing {
@@ -23,12 +17,10 @@ abstract contract KasuStorage {
         uint16 dailyInterestRate; // daily interest rate
         uint256 collateralRequired; // collateral required
         Rental rental; // Store borrower + rental info
-        RentalStatus rentalStatus; // status of rental
     }
 
     struct Rental {
         address payable borrowerAddress;
-        uint16 rentDuration; // current rent duration
         uint256 rentedAt; // timestamp at which the NFT was rented
     }
 
