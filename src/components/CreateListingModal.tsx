@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 
 import { KasuContract, getLoginServiceProvider } from '../utils/abiManager';
-
+import { ethers } from 'ethers';
 import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
@@ -18,7 +18,7 @@ function CreateListingModal(props: Props) {
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
     const isValidInterestRateRef = useRef(false);
-    
+
     const [formValues, setFormValues] = useState({
         collateralRequired: "",
         rentalDuration: "",
@@ -34,14 +34,13 @@ function CreateListingModal(props: Props) {
 
     const didClickListNFTButton = () => {
         const contract = KasuContract();
-
         try {
             contract.listNFT(
                 props.tokenID,
                 props.tokenAddress,
                 formValues.rentalDuration,
                 formValues.interestRate,
-                formValues.collateralRequired
+                ethers.utils.parseEther(formValues.collateralRequired)
             ).then(() => {
                     // show toast when transaction is pending
                     toast.promise(
