@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Modal, Button } from 'react-bootstrap';
+import { Alert, Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
 
 import ContractAddress from "../abis/contract-address.json";
@@ -14,30 +14,36 @@ interface Props {
 
 function BorrowModal(props: Props) {
     const [shouldDisableBorrowButton, setShouldDisableBorrowButton] = useState(false);
+    const [error, setError] = useState(null);
 
     const didClickBorrowButton = () => {
         const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+        setShouldDisableBorrowButton(true);
+        setError(null);
 
         const paymentAmount = ethers.utils.parseEther("123.4");
-        try {
             contract.borrow(
                 props.listingId,
                 { value: paymentAmount }
             ).then((response: any) => {
                 console.log("response", response);
-                setShouldDisableBorrowButton(true);
+                // ... close the dialog and wait for transaction to be mined ...
                 props.onShouldClose(true);
+            }).catch((error: any) => {
+                console.log(error);
+                setShouldDisableBorrowButton(false);
+                setError(error.data.message);
             });
-        } catch (error: any) {
-            console.log("error", error.toString());
-            return;
-        }
     };
 
     const didClickCloseButton = () => {
         props.onShouldClose(false);
     };
 
+    let errorMessage;
+    if (error) {
+        errorMessage = (<Alert variant="danger">{error}</Alert>);
+    }
     return (
         <Modal show={props.isShown}>
             <Modal.Dialog style={{ width: '100%', marginTop: 0, marginBottom: 0 }}>
@@ -46,6 +52,7 @@ function BorrowModal(props: Props) {
                 </Modal.Header>
                 <Modal.Body>
                     Total payment is 123.4 ETH
+                    {errorMessage}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={didClickCloseButton}>Close</Button>
