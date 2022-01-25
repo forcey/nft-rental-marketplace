@@ -6,7 +6,7 @@ import NFTCardGrid from '../components/NFTCardGrid';
 import CreateListingModal from '../components/CreateListingModal';
 import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
-import { ABIManager } from '../utils/abiManager';
+import { FakeNFTContract, KasuContract } from '../utils/abiManager';
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
@@ -49,8 +49,7 @@ function LendPage() {
 
     const loadFakeNFT = useCallback(async () => {
         const signer = LoginService.getInstance().signer
-        const abiManager = new ABIManager(signer);
-        const contract = abiManager.FakeNFTContract();
+        const contract = FakeNFTContract();
         const walletAddress = await signer.getAddress();
         const balance = await contract.balanceOf(walletAddress);
         var fetchedNFTs = [];
@@ -93,8 +92,7 @@ function LendPage() {
     }, []);
 
     const terminateRental = useCallback((tokenID, tokenAddress, listingID) => {
-        const abiManager = new ABIManager(LoginService.getInstance().signer);
-        const contract = abiManager.KasuContract();
+        const contract = KasuContract();
         contract.terminateRental(listingID)
           .then(() => {
               setNFTsLentOut(nfts => {
@@ -104,8 +102,7 @@ function LendPage() {
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
-        const abiManager = new ABIManager(LoginService.getInstance().signer);
-        const contract = abiManager.KasuContract();
+        const contract = KasuContract();
         const filter = { address: contract.address,
                          topics: [ethers.utils.id("TerminateRental(uint256)")] };
         LoginService.getInstance().provider.on(filter, event => {
