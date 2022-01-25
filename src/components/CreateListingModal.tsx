@@ -1,7 +1,10 @@
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
+import { ToastContainer, toast } from "react-toastify";
 
 import { KasuContract } from '../utils/abiManager';
+
+import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
     tokenID: string,
@@ -39,16 +42,40 @@ function CreateListingModal(props: Props) {
                 formValues.rentalDuration,
                 formValues.interestRate,
                 formValues.collateralRequired
-            ).then((response: any) => {
-                    // console.log("response", response);
-                    setShouldDisableListButton(true);
-                    props.onShouldClose(true);
+            ).then(() => {
+                    // show toast when transaction is pending
+                    toast.promise(
+                        onListNFTCompletion(),
+                        {
+                          pending: 'Listing NFT is pending',
+                          success: 'Listing Your NFT... 👌',
+                          error: 'Error listing NFT'
+                        },
+                        {
+                            position: toast.POSITION.TOP_CENTER,
+                            autoClose: 15000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                        }
+                    )
                 }) ;
         } catch (error: any) {
             console.log("error", error.toString());
             return;
         }
     };
+
+    const onListNFTCompletion = () => new Promise((resolve) => {
+        resolve(
+            LoginService.getInstance().provider.on("block", () => {
+                setShouldDisableListButton(true);
+                props.onShouldClose(true);
+            })
+        );
+    });
 
     const didClickCloseButton = () => {
         props.onShouldClose(false);
@@ -135,6 +162,17 @@ function CreateListingModal(props: Props) {
                     <Button variant="success" onClick={didClickListNFTButton} disabled={shouldDisableListButton}>List</Button>
                 </Modal.Footer>
             </Modal.Dialog>
+            <ToastContainer
+                position={toast.POSITION.TOP_CENTER}
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </Modal>
     );
 }
