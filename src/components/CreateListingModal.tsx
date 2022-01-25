@@ -1,9 +1,7 @@
-import { ethers } from 'ethers';
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
 
-import ContractAddress from "../abis/contract-address.json";
-import KasuContract from "../abis/Kasu.json";
+import { ABIManager } from '../utils/abiManager';
 import LoginService from '../utils/LoginService';
 
 interface Props {
@@ -33,7 +31,8 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
-        const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+        const abiManager = new ABIManager(LoginService.getInstance().signer);
+        const contract = abiManager.KasuContract();
 
         try {
             contract.listNFT(

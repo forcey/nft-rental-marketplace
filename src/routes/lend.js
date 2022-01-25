@@ -8,9 +8,6 @@ import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
 import { ABIManager } from '../utils/abiManager';
 
-const AVAILABLE_STATUS = 1;
-const UNAVAILABLE_STATUS = 2;
-
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
@@ -51,9 +48,9 @@ function LendPage() {
     }, [setNFTsInUserWallet, setError, listNFT]);
 
     const loadFakeNFT = useCallback(async () => {
-        const signer = LoginService.getInstance().signer;
-        const abiManager = new ABIManager(signer.getChainId);
-        const contract = abiManager.FakeNFTContract(signer);
+        const signer = LoginService.getInstance().signer
+        const abiManager = new ABIManager(signer);
+        const contract = abiManager.FakeNFTContract();
         const walletAddress = await signer.getAddress();
         const balance = await contract.balanceOf(walletAddress);
         var fetchedNFTs = [];
@@ -96,9 +93,8 @@ function LendPage() {
     }, []);
 
     const terminateRental = useCallback((tokenID, tokenAddress, listingID) => {
-        const signer = LoginService.getInstance().signer;
-        const abiManager = new ABIManager(signer.getChainId);
-        const contract = abiManager.KasuContract(signer);
+        const abiManager = new ABIManager(LoginService.getInstance().signer);
+        const contract = abiManager.KasuContract();
         contract.terminateRental(listingID)
           .then(() => {
               setNFTsLentOut(nfts => {
@@ -108,9 +104,8 @@ function LendPage() {
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
-        const signer = LoginService.getInstance().signer;
-        const abiManager = new ABIManager(signer.getChainId);
-        const contract = abiManager.KasuContract(signer);
+        const abiManager = new ABIManager(LoginService.getInstance().signer);
+        const contract = abiManager.KasuContract();
         const filter = { address: contract.address,
                          topics: [ethers.utils.id("TerminateRental(uint256)")] };
         LoginService.getInstance().provider.on(filter, event => {

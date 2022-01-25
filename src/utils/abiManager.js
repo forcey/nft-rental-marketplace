@@ -3,10 +3,10 @@ import hardhat_abis from '../abis/hardhat';
 import rinkeby_abis from '../abis/rinkeby';
 
 class ABIManager{
-  chainId = null;
+  signer = null;
 
-  constructor(chainId){
-      this.chainId = chainId;
+  constructor(signer){
+      this.signer = signer;
   }
   
   getABIDirectory(){
@@ -16,7 +16,7 @@ class ABIManager{
       "4": rinkeby_abis,
       "31337": hardhat_abis,
     };
-    const jsonFiles = DirectoryByChainID[this.chainId];
+    const jsonFiles = DirectoryByChainID[this.signer.chainId];
     if (jsonFiles !== undefined){
       return jsonFiles
     }
@@ -35,12 +35,16 @@ class ABIManager{
       return this.getABIDirectory().FakeNFT;
   }
 
-  KasuContract(signer){
-    return new ethers.Contract(this.contractAddress.Kasu, this.Kasu.abi, signer);
+  KasuContract(){
+    return new ethers.Contract(this.contractAddress.Kasu,
+                               this.Kasu.abi,
+                               this.signer);
   }
 
-  FakeNFTContract(signer) {
-    return new ethers.Contract(this.contractAddress.FakeNFT, this.FakeNFT.abi, signer);
+  FakeNFTContract() {
+    return new ethers.Contract(this.contractAddress.FakeNFT,
+                               this.FakeNFT.abi,
+                               this.signer);
   }
 
 }
