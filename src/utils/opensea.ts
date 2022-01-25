@@ -26,7 +26,6 @@ async function getAssets(additionalParams: URLSearchParams): Promise<Array<NFTMe
     url.searchParams.append("offset", "0");
     url.searchParams.append("limit", "20");
 
-    console.log(url.toString());
     const options = { method: 'GET', headers: { Accept: 'application/json' } };
     const response = await fetch(url.toString(), options);
     if (!response.ok) {
