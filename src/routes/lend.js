@@ -131,7 +131,7 @@ function LendPage() {
             const ongoingRentals = fetchedListingsAndRentals
                                     .filter(obj => !isRentalAvailable(obj))
                                     .map(obj => {
-                                        const isTerminatable = ethers.BigNumber.from(Date.now()).div(100)
+                                        const isTerminatable = ethers.BigNumber.from(Date.now()).div(1000)
                                                                 .gte(obj.rental.rentedAt.add(obj.duration * 86400));
                                         return {
                                             address: obj.tokenAddress,
