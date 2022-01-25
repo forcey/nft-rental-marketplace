@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import hardhat_abis from '../abis/hardhat';
 import rinkeby_abis from '../abis/rinkeby';
+import mainnet_abis from '../abis/mainnet';
 
 class ABIManager{
   signer = null;
@@ -11,8 +12,7 @@ class ABIManager{
   
   getABIDirectory(){
     const DirectoryByChainID = {
-      // TODO: create mainnet ABIs, add index.js and import
-      // "1": mainnet,
+      "1": mainnet_abis,
       "4": rinkeby_abis,
       "31337": hardhat_abis,
     };
