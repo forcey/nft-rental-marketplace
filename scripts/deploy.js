@@ -44,13 +44,39 @@ async function main() {
             fakeNFT.address, // tokenAddress
             getRandomInt(1, 8), // duration
             getRandomInt(1, 10), // dailyInterestRate
-            ethers.utils.parseEther("1").mul(getRandomInt(1, 1000)) // collateralRequired in wei
+            ethers.utils.parseEther("1").mul(getRandomInt(1, 10)) // collateralRequired in wei
         );
     }
     events = await kasuContract.queryFilter("ListNFT");
+    const listingIds = [];
     for (const event of events) {
-        console.log(`ListNFT args: ${JSON.stringify(removeNumericKeys(event.args))}`);
+        listingIds.push(removeNumericKeys(event.args).listingId);
     }
+    console.log(`Listing IDs: ${listingIds}`)
+
+    // Borrow
+    const account1 = accounts[1];
+    console.log(`Borrowing some NFTs from account ${account1.address}`)
+    const listings = await kasuContract.viewAllListings();
+    for (let i = 0; i < listings.length - 2; i++) {
+        const listing = listings[i];
+        const collateralRequiredInEth = Number(hre.ethers.utils.formatEther(listing.collateralRequired));
+        console.log(`Listing id: ${listing.id}, rent duration: ${listing.duration}, collateral req: ${collateralRequiredInEth} eth, interest rate: ${listing.dailyInterestRate}%`)
+        const totalAmountRequiredInEth =
+            collateralRequiredInEth  +
+            (collateralRequiredInEth * listing.duration * (listing.dailyInterestRate / 100));
+        console.log(`${account1.address} borrowing listing ${listing.id} for a total of ${totalAmountRequiredInEth.toString()} ETH`);
+        await kasuContract.connect(account1).borrow(
+            listing.id,
+            { value: hre.ethers.utils.parseEther(totalAmountRequiredInEth.toString()) }
+        );
+    }
+
+    console.log('Setting next block timestamp forward 7 days so you can terminate rentals')
+    const latestBlock = await hre.ethers.provider.getBlock("latest");
+    const sevenDaysInTheFuture = latestBlock.timestamp + 86400 * 7;
+    await hre.ethers.provider.send('evm_setNextBlockTimestamp', [sevenDaysInTheFuture]);
+    await hre.ethers.provider.send('evm_mine');
 }
 
 function saveFrontendFiles(contracts) {
