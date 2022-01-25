@@ -30,23 +30,26 @@ async function main() {
         "FakeNFT": fakeNFT
     });
 
-    console.log("Minting 10 NFTs for each account...")
-    for (const account of accounts) {
-        await fakeNFT.connect(account).mint(10);
-        break;
-    }
+    const owner = accounts[0];
+    console.log(`Minting 10 NFTs for account address: ${owner.address}`)
+    await fakeNFT.connect(owner).mint(10);
 
-    owner = accounts[0];
-    console.log("Listing 5 NFTs from account " + owner.address);
+    console.log(`Listing 5 NFTs from account ${owner.address}`);
     await fakeNFT.setApprovalForAll(kasuContract.address, true);
-    
-    for (var i = 0; i < 5; i++) {
+
+    for (let i = 0; i < 5; i++) {
         id = await fakeNFT.tokenOfOwnerByIndex(owner.address, i);
-        await kasuContract.listNFT(id, fakeNFT.address, getRandomInt(1, 8), getRandomInt(1, 10), ethers.utils.parseEther("1").mul(getRandomInt(1, 1000)))
+        await kasuContract.listNFT(
+            id, // tokenId
+            fakeNFT.address, // tokenAddress
+            getRandomInt(1, 8), // duration
+            getRandomInt(1, 10), // dailyInterestRate
+            ethers.utils.parseEther("1").mul(getRandomInt(1, 1000)) // collateralRequired in wei
+        );
     }
     events = await kasuContract.queryFilter("ListNFT");
     for (const event of events) {
-        console.log(removeNumericKeys(event.args))
+        console.log(`ListNFT args: ${JSON.stringify(removeNumericKeys(event.args))}`);
     }
 }
 
