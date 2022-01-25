@@ -1,15 +1,13 @@
-
 import { Button, Navbar, Badge } from 'react-bootstrap';
 import { useEffect, useState, useRef } from 'react';
 
 import LoginService from '../utils/LoginService';
-import { ethers } from 'ethers';
 
 function Login() {
     const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().walletAddress);
     const [chainName, setChainName] = useState(LoginService.getInstance().chainName);
-    const changeWalletAddress = (provider: ethers.providers.Web3Provider, signer: ethers.Signer, walletAddress: string) => {
-        setWalletAddress(walletAddress);
+    const changeWalletAddress = () => {
+        setWalletAddress(LoginService.getInstance().walletAddress);
         setChainName(LoginService.getInstance().chainName);
     };
     const onChainChange = () => {
@@ -18,9 +16,11 @@ function Login() {
 
     useEffect(() => {
         LoginService.getInstance().onLogin(changeWalletAddress);
+        LoginService.getInstance().onAccountsChanged(changeWalletAddress);
         LoginService.getInstance().onChainChanged(onChainChange);
         return () => {
             LoginService.getInstance().detachLoginObserver(changeWalletAddress);
+            LoginService.getInstance().detachAccountsChangedObserver(changeWalletAddress);
             LoginService.getInstance().detachChainChangedObserver(onChainChange);
         }
     }, []);
