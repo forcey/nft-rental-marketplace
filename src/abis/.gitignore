@@ -1,2 +1,2 @@
-# Ignore contract address on a local deployment.
-contract-address.json
+# Ignore hardhart ABI changes for local deployments
+hardhat/*
