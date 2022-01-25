@@ -23,27 +23,27 @@ class ABIManager{
     return hardhat_abis
   }
   
-  get Kasu() {
+  Kasu() {
       return this.getABIDirectory().Kasu;
   }
   
-  get contractAddress() {
+  contractAddress() {
       return this.getABIDirectory().contractAddress;
   }
   
-  get FakeNFT() {
+  FakeNFT() {
       return this.getABIDirectory().FakeNFT;
   }
 
   KasuContract(){
-    return new ethers.Contract(this.contractAddress.Kasu,
-                               this.Kasu.abi,
+    return new ethers.Contract(this.contractAddress().Kasu,
+                               this.Kasu().abi,
                                this.signer);
   }
 
   FakeNFTContract() {
-    return new ethers.Contract(this.contractAddress.FakeNFT,
-                               this.FakeNFT.abi,
+    return new ethers.Contract(this.contractAddress().FakeNFT,
+                               this.FakeNFT().abi,
                                this.signer);
   }
 
