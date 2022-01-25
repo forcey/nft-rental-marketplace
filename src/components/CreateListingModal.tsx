@@ -2,7 +2,7 @@ import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 
-import { KasuContract } from '../utils/abiManager';
+import { KasuContract, getLoginServiceProvider } from '../utils/abiManager';
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,8 +69,9 @@ function CreateListingModal(props: Props) {
     };
 
     const onListNFTCompletion = () => new Promise((resolve) => {
+        const loginServiceProvider = getLoginServiceProvider();
         resolve(
-            LoginService.getInstance().provider.on("block", () => {
+            loginServiceProvider.on("block", () => {
                 setShouldDisableListButton(true);
                 props.onShouldClose(true);
             })
