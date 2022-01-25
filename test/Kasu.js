@@ -222,13 +222,13 @@ describe("Kasu", function () {
 				.withArgs(1);
     });
 
-    it("lender should be able to receive collateral after terminating a rental", async function () {
+    it("lender should be able to receive collateral + interest after terminating a rental", async function () {
       await fakeNFT.connect(owner).mint(1);
-      // 5 days * 1% * 10 ether = 0.5 ether, plus collateral of 10 ether
-      const collateralAmount = ethers.utils.parseEther( "10");
-      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, collateralAmount);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
       await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
-      const tx = await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      // 5 days * 1% * 10 ether = 0.5 ether, plus collateral of 10 ether = 10.5 total amount required
+      const totalDepositRequired = ethers.utils.parseEther("10.5");
+      const tx = await contract.connect(account1).borrow(1, { value: totalDepositRequired });
       const block = await ethers.provider.getBlock(tx.blockNumber);
       const sometimeAfterDueDate = block.timestamp + 86400 * (MAX_RENT_DURATION + 1)
       await ethers.provider.send('evm_setNextBlockTimestamp', [sometimeAfterDueDate]);
@@ -237,7 +237,7 @@ describe("Kasu", function () {
       const terminateTX = await contract.connect(owner).terminateRental(1);
       const gasUsed = (await ethers.provider.getTransactionReceipt(terminateTX.hash)).gasUsed;
       const gasPriceInWei = gasUsed.mul(terminateTX.gasPrice);
-      const expectedBalance = ownerBalanceBeforeCollectingCollateral.add(collateralAmount).sub(gasPriceInWei);
+      const expectedBalance = ownerBalanceBeforeCollectingCollateral.add(totalDepositRequired).sub(gasPriceInWei);
       const actualBalance = await ethers.provider.getBalance(owner.address);
       assert.equal(expectedBalance.eq(actualBalance), true);
     });

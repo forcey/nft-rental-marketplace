@@ -106,13 +106,14 @@ contract Kasu is KasuStorage, KasuMath {
     // [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
     function terminateRental(uint256 listingId) public {
-        Listing memory listing = _getListingById(listingId);
+        Listing storage listing = _getListingById(listingId);
         validateListingNFT(listing);
         require(listing.lenderAddress == msg.sender, "only the lender can terminate the rental");
         uint dueDate = listing.rental.rentedAt + listing.duration * 86400;
         require(block.timestamp >= dueDate, "cannot terminate rental that is not yet due");
+        uint payment = _calculatePayment(listing);
         _deleteListing(listingId);
-        (bool sent,) = msg.sender.call{ value: listing.collateralRequired }("");
+        (bool sent,) = msg.sender.call{ value: payment }("");
         require(sent, "failed to send collateral back to lender");
         emit TerminateRental(listingId);
     }
