@@ -9,7 +9,7 @@ import BorrowModal from '../components/BorrowModal';
 function BrowsePage() {
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
-    const [borrowModalState, setBorrowModalState] = useState({ isShown: false, tokenID: '', tokenAddress: '' });
+    const [borrowModalState, setBorrowModalState] = useState({ isShown: false, listingId: '' });
     const borrowNFT = useCallback((tokenID, tokenAddress, listingId) => {
         setBorrowModalState({ isShown: true, listingId: listingId });
     }, [setBorrowModalState]);
@@ -35,6 +35,7 @@ function BrowsePage() {
                 availableListings.push({
                     address: listing.tokenAddress,
                     tokenID: tokenId,
+                    listingID: listing.id,
                     // TODO: load metadata from opensea (or contract itself)
                     name: `Katsu #${tokenId}`,
                     contractName: "Chicken Katsu",
@@ -43,19 +44,23 @@ function BrowsePage() {
                     rentalDuration: listing.duration,
                     interestRate: listing.dailyInterestRate,
                     actionButtonStyle: 'BORROW',
+                    // Normalize all addresses to checksummed addresses for comparison.
+                    actionButtonDisabled: ethers.utils.getAddress(listing.lenderAddress) === ethers.utils.getAddress(LoginService.getInstance().walletAddress),
                     didClickActionButton: borrowNFT,
                 });
             }
-            setListings(listings.concat(availableListings));
+            setListings(availableListings);
         })();
     }, [setListings, listings, borrowNFT]);
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
         LoginService.getInstance().onLogin(fetchListings);
+        LoginService.getInstance().onAccountsChanged(fetchListings);    // TODO: actually only need to refresh button status.
         LoginService.getInstance().onChainChanged(fetchListings);
         return () => {
-            LoginService.getInstance().detachLoginObserver(fetchListings)
+            LoginService.getInstance().detachLoginObserver(fetchListings);
+            LoginService.getInstance().detachAccountsChangedObserver(fetchListings);
             LoginService.getInstance().detachChainChangedObserver(fetchListings);
         };
     }, [fetchListings]);
@@ -93,8 +98,7 @@ function BrowsePage() {
             {borrowModalState.isShown &&
                 <BorrowModal
                     isShown={borrowModalState.isShown}
-                    tokenID={borrowModalState.tokenID}
-                    tokenAddress={borrowModalState.tokenAddress}
+                    listingId={borrowModalState.listingId}
                     onShouldClose={closeBorrowModal} />}
         </Container>)
     } else {
