@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert } from 'react-bootstrap';
+import { Alert ,Container } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import { isRentalAvailable } from "../utils/common";
 import { ABIManager } from "../utils/abiManager"
+import BorrowModal from '../components/BorrowModal';
 
 function BrowsePage() {
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
+    const [borrowModalState, setBorrowModalState] = useState({ isShown: false, tokenID: '', tokenAddress: '' });
+    const borrowNFT = useCallback((tokenID, tokenAddress, listingId) => {
+        setBorrowModalState({ isShown: true, listingId: listingId });
+    }, [setBorrowModalState]);
 
     const fetchListings = useCallback(() => {
         (async () => {
@@ -38,12 +43,12 @@ function BrowsePage() {
                     rentalDuration: listing.duration,
                     interestRate: listing.dailyInterestRate,
                     actionButtonStyle: 'BORROW',
-                    didClickActionButton: () => { },
+                    didClickActionButton: borrowNFT,
                 });
             }
             setListings(listings.concat(availableListings));
         })();
-    }, [setListings, listings]);
+    }, [setListings, listings, borrowNFT]);
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
@@ -67,6 +72,13 @@ function BrowsePage() {
             });
     });
 
+    const closeBorrowModal = useCallback((didBorrow) => {
+        setBorrowModalState({ isShown: false, tokenId: "" });
+        if (didBorrow) {
+            fetchListings();
+        }
+    }, [setBorrowModalState, fetchListings]);
+
     if (!LoginService.getInstance().isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
@@ -76,7 +88,15 @@ function BrowsePage() {
     }
 
     if (listings.length) {
-        return <NFTCardGrid data={listings} />
+        return (<Container>
+            <NFTCardGrid data={listings} />
+            {borrowModalState.isShown &&
+                <BorrowModal
+                    isShown={borrowModalState.isShown}
+                    tokenID={borrowModalState.tokenID}
+                    tokenAddress={borrowModalState.tokenAddress}
+                    onShouldClose={closeBorrowModal} />}
+        </Container>)
     } else {
         return (<Alert variant="primary">No listings available</Alert>);
     }
