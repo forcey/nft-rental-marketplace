@@ -14,6 +14,14 @@ export type Listing = {
     }
 };
 
+export type NFTMetadata = {
+    address: string,
+    tokenID: ethers.BigNumber,
+    name: string,
+    contractName: string,
+    imageURI: string,
+};
+
 export function isRentalAvailable(listing: Listing) {
     return listing.rental.rentedAt.isZero();
 }
