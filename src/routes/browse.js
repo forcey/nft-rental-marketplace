@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
-import { ethers } from "ethers";
-import KasuContract from "../abis/Kasu.json";
-import ContractAddress from "../abis/contract-address.json";
 import { isRentalAvailable } from "../utils/common";
+import { ABIManager } from "../utils/abiManager"
 
 function BrowsePage() {
     const [listings, setListings] = useState([]);
@@ -13,7 +11,8 @@ function BrowsePage() {
 
     const fetchListings = useCallback(() => {
         (async () => {
-            const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+            const abiManager = new ABIManager(LoginService.getInstance().signer);
+            const contract = abiManager.KasuContract();
             let fetchedListings = [];
             try {
                 fetchedListings = await contract.viewAllListings();

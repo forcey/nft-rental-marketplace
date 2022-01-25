@@ -5,10 +5,8 @@ import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import CreateListingModal from '../components/CreateListingModal';
 import LoginService from '../utils/LoginService';
-import FakeNFTContract from "../abis/FakeNFT.json";
-import ContractAddress from "../abis/contract-address.json";
-import KasuContract from "../abis/Kasu.json";
 import { isRentalAvailable } from "../utils/common";
+import { ABIManager } from '../utils/abiManager';
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
@@ -50,8 +48,9 @@ function LendPage() {
     }, [setNFTsInUserWallet, setError, listNFT]);
 
     const loadFakeNFT = useCallback(async () => {
-        const signer = LoginService.getInstance().signer;
-        const contract = new ethers.Contract(ContractAddress.FakeNFT, FakeNFTContract.abi, signer);
+        const signer = LoginService.getInstance().signer
+        const abiManager = new ABIManager(signer);
+        const contract = abiManager.FakeNFTContract();
         const walletAddress = await signer.getAddress();
         const balance = await contract.balanceOf(walletAddress);
         var fetchedNFTs = [];
@@ -94,7 +93,8 @@ function LendPage() {
     }, []);
 
     const terminateRental = useCallback((tokenID, tokenAddress, listingID) => {
-        const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+        const abiManager = new ABIManager(LoginService.getInstance().signer);
+        const contract = abiManager.KasuContract();
         contract.terminateRental(listingID)
           .then(() => {
               setNFTsLentOut(nfts => {
@@ -104,7 +104,8 @@ function LendPage() {
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
-        const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+        const abiManager = new ABIManager(LoginService.getInstance().signer);
+        const contract = abiManager.KasuContract();
         const filter = { address: contract.address,
                          topics: [ethers.utils.id("TerminateRental(uint256)")] };
         LoginService.getInstance().provider.on(filter, event => {

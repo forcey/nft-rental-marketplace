@@ -51,7 +51,14 @@ async function main() {
 
 function saveFrontendFiles(contracts) {
     const fs = require("fs");
-    const contractsDir = __dirname + "/../src/abis";
+    const DirectoryByChainID = {
+        "1": "/mainnet",
+        "4": "/rinkeby",
+        "31337": "/hardhat",
+      };
+
+    const subDir = DirectoryByChainID[hre.network.config.chainId] || '/hardhat'
+    const contractsDir = __dirname + "/../src/abis" + subDir;
 
     if (!fs.existsSync(contractsDir)) {
         fs.mkdirSync(contractsDir);
