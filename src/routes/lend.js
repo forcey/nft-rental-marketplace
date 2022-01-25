@@ -150,7 +150,6 @@ function LendPage() {
                                     });
             setNFTsListedForLending(ongoingListings);
             setNFTsLentOut(ongoingRentals);
-            console.log(ongoingListings, ongoingRentals);
         });
     }, [setNFTsListedForLending, setNFTsLentOut, terminateRental]);
 
