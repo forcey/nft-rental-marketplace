@@ -2,51 +2,43 @@ import { ethers } from 'ethers';
 import hardhat_abis from '../abis/hardhat';
 import rinkeby_abis from '../abis/rinkeby';
 import mainnet_abis from '../abis/mainnet';
+import LoginService from './LoginService';
 
-class ABIManager{
-  signer = null;
-
-  constructor(signer){
-      this.signer = signer;
+function getABIDirectory() {
+  const DirectoryByChainID = {
+    "1": mainnet_abis,
+    "4": rinkeby_abis,
+    "31337": hardhat_abis,
+  };
+  const jsonFiles = DirectoryByChainID[LoginService.getInstance().chainId];
+  if (jsonFiles !== undefined) {
+    return jsonFiles
   }
-  
-  getABIDirectory(){
-    const DirectoryByChainID = {
-      "1": mainnet_abis,
-      "4": rinkeby_abis,
-      "31337": hardhat_abis,
-    };
-    const jsonFiles = DirectoryByChainID[this.signer.chainId];
-    if (jsonFiles !== undefined){
-      return jsonFiles
-    }
-    return hardhat_abis
-  }
-  
-  Kasu() {
-      return this.getABIDirectory().Kasu;
-  }
-  
-  contractAddress() {
-      return this.getABIDirectory().contractAddress;
-  }
-  
-  FakeNFT() {
-      return this.getABIDirectory().FakeNFT;
-  }
-
-  KasuContract(){
-    return new ethers.Contract(this.contractAddress().Kasu,
-                               this.Kasu().abi,
-                               this.signer);
-  }
-
-  FakeNFTContract() {
-    return new ethers.Contract(this.contractAddress().FakeNFT,
-                               this.FakeNFT().abi,
-                               this.signer);
-  }
-
+  return hardhat_abis
 }
 
-export {ABIManager, }
+function Kasu() {
+  return getABIDirectory().Kasu;
+}
+
+function contractAddress() {
+  return getABIDirectory().contractAddress;
+}
+
+function FakeNFT() {
+  return getABIDirectory().FakeNFT;
+}
+
+function KasuContract() {
+  return new ethers.Contract(contractAddress().Kasu,
+    Kasu().abi,
+    LoginService.getInstance().signer);
+}
+
+function FakeNFTContract() {
+  return new ethers.Contract(contractAddress().FakeNFT,
+    FakeNFT().abi,
+    LoginService.getInstance().signer);
+}
+
+export { KasuContract, FakeNFTContract };

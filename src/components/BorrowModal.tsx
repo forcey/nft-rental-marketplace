@@ -3,7 +3,7 @@ import { Alert, Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
 import LoginService from '../utils/LoginService';
 import { Listing } from "../utils/common";
-import { ABIManager } from "../utils/abiManager"
+import { KasuContract } from "../utils/abiManager"
 
 interface Props {
     listing: Listing,
@@ -23,7 +23,7 @@ function BorrowModal(props: Props) {
     const paymentAmount = calculatePayment(props.listing);
 
     const didClickBorrowButton = () => {
-        const contract = new ABIManager(LoginService.getInstance().signer).KasuContract();
+        const contract = KasuContract();
         setShouldDisableBorrowButton(true);
         setError(null);
 

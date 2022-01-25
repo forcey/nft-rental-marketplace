@@ -1,7 +1,7 @@
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
 
-import { ABIManager } from '../utils/abiManager';
+import { KasuContract } from '../utils/abiManager';
 import LoginService from '../utils/LoginService';
 
 interface Props {
@@ -31,8 +31,7 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
-        const abiManager = new ABIManager(LoginService.getInstance().signer);
-        const contract = abiManager.KasuContract();
+        const contract = KasuContract();
 
         try {
             contract.listNFT(

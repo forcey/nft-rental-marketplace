@@ -4,7 +4,7 @@ import { Alert, Container } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import { isRentalAvailable } from "../utils/common";
-import { ABIManager } from "../utils/abiManager"
+import { KasuContract } from "../utils/abiManager"
 import BorrowModal from '../components/BorrowModal';
 
 function BrowsePage() {
@@ -17,8 +17,7 @@ function BrowsePage() {
 
     const fetchListings = useCallback(() => {
         (async () => {
-            const abiManager = new ABIManager(LoginService.getInstance().signer);
-            const contract = abiManager.KasuContract();
+            const contract = KasuContract();
             let fetchedListings = [];
             try {
                 fetchedListings = await contract.viewAllListings();
