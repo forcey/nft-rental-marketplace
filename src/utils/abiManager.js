@@ -41,4 +41,8 @@ function FakeNFTContract() {
     LoginService.getInstance().signer);
 }
 
-export { KasuContract, FakeNFTContract };
+function getLoginServiceProvider() {
+  return LoginService.getInstance().provider;
+}
+
+export { KasuContract, FakeNFTContract, getLoginServiceProvider };
