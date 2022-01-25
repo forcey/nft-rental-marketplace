@@ -1,11 +1,9 @@
 import { ethers } from 'ethers';
 import { Alert, Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
-
-import ContractAddress from "../abis/contract-address.json";
-import KasuContract from "../abis/Kasu.json";
 import LoginService from '../utils/LoginService';
 import { Listing } from "../utils/common";
+import { ABIManager } from "../utils/abiManager"
 
 interface Props {
     listing: Listing,
@@ -25,7 +23,7 @@ function BorrowModal(props: Props) {
     const paymentAmount = calculatePayment(props.listing);
 
     const didClickBorrowButton = () => {
-        const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
+        const contract = new ABIManager(LoginService.getInstance().signer).KasuContract();
         setShouldDisableBorrowButton(true);
         setError(null);
 

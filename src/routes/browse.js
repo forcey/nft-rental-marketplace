@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
@@ -51,7 +52,7 @@ function BrowsePage() {
             }
             setListings(availableListings);
         })();
-    }, [setListings, listings, borrowNFT]);
+    }, [setListings, borrowNFT]);
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {

@@ -1,9 +1,7 @@
-
 import { Button, Navbar, Badge } from 'react-bootstrap';
 import { useEffect, useState, useRef } from 'react';
 
 import LoginService from '../utils/LoginService';
-import { ethers } from 'ethers';
 
 function Login() {
     const [walletAddress, setWalletAddress] = useState(LoginService.getInstance().walletAddress);
