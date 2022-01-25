@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert ,Container } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import LoginService from '../utils/LoginService';
 import NFTCardGrid from '../components/NFTCardGrid';
 import { isRentalAvailable } from "../utils/common";
@@ -9,9 +9,9 @@ import BorrowModal from '../components/BorrowModal';
 function BrowsePage() {
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
-    const [borrowModalState, setBorrowModalState] = useState({ isShown: false, listingId: '' });
-    const borrowNFT = useCallback((tokenID, tokenAddress, listingId) => {
-        setBorrowModalState({ isShown: true, listingId: listingId });
+    const [borrowModalState, setBorrowModalState] = useState({ isShown: false });
+    const borrowNFT = useCallback((listing) => {
+        setBorrowModalState({ isShown: true, listing: listing });
     }, [setBorrowModalState]);
 
     const fetchListings = useCallback(() => {
@@ -40,13 +40,13 @@ function BrowsePage() {
                     name: `Katsu #${tokenId}`,
                     contractName: "Chicken Katsu",
                     imageURI: 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22232%22%20height%3D%22131%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20232%20131%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e704e3109%20text%20%7B%20fill%3A%2380b480%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e704e3109%22%3E%3Crect%20width%3D%22232%22%20height%3D%22131%22%20fill%3D%22%23a1e1a1%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2284.85546875%22%20y%3D%2270.9%22%3E232x131%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E',
-                    collateral: listing.collateralRequired.toString(),
+                    collateral: ethers.utils.formatEther(listing.collateralRequired),
                     rentalDuration: listing.duration,
                     interestRate: listing.dailyInterestRate,
                     actionButtonStyle: 'BORROW',
                     // Normalize all addresses to checksummed addresses for comparison.
                     actionButtonDisabled: ethers.utils.getAddress(listing.lenderAddress) === ethers.utils.getAddress(LoginService.getInstance().walletAddress),
-                    didClickActionButton: borrowNFT,
+                    didClickActionButton: () => borrowNFT(listing),
                 });
             }
             setListings(availableListings);
@@ -78,7 +78,7 @@ function BrowsePage() {
     });
 
     const closeBorrowModal = useCallback((didBorrow) => {
-        setBorrowModalState({ isShown: false, tokenId: "" });
+        setBorrowModalState({ isShown: false });
         if (didBorrow) {
             fetchListings();
         }
@@ -98,7 +98,7 @@ function BrowsePage() {
             {borrowModalState.isShown &&
                 <BorrowModal
                     isShown={borrowModalState.isShown}
-                    listingId={borrowModalState.listingId}
+                    listing={borrowModalState.listing}
                     onShouldClose={closeBorrowModal} />}
         </Container>)
     } else {

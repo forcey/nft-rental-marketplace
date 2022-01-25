@@ -5,35 +5,42 @@ import { useState } from 'react';
 import ContractAddress from "../abis/contract-address.json";
 import KasuContract from "../abis/Kasu.json";
 import LoginService from '../utils/LoginService';
+import { Listing } from "../utils/common";
 
 interface Props {
-    listingId: string,
+    listing: Listing,
     isShown: boolean,
     onShouldClose: (didBorrow: boolean) => void,
+}
+
+function calculatePayment(listing: Listing) {
+    const interest = listing.collateralRequired.mul(listing.dailyInterestRate * listing.duration).div(100);
+    return listing.collateralRequired.add(interest);
 }
 
 function BorrowModal(props: Props) {
     const [shouldDisableBorrowButton, setShouldDisableBorrowButton] = useState(false);
     const [error, setError] = useState(null);
 
+    const paymentAmount = calculatePayment(props.listing);
+
     const didClickBorrowButton = () => {
         const contract = new ethers.Contract(ContractAddress.Kasu, KasuContract.abi, LoginService.getInstance().signer);
         setShouldDisableBorrowButton(true);
         setError(null);
 
-        const paymentAmount = ethers.utils.parseEther("123.4");
-            contract.borrow(
-                props.listingId,
-                { value: paymentAmount }
-            ).then((response: any) => {
-                console.log("response", response);
-                // ... close the dialog and wait for transaction to be mined ...
-                props.onShouldClose(true);
-            }).catch((error: any) => {
-                console.log(error);
-                setShouldDisableBorrowButton(false);
-                setError(error.data.message);
-            });
+        contract.borrow(
+            props.listing.id,
+            { value: paymentAmount }
+        ).then((response: any) => {
+            console.log("response", response);
+            // ... close the dialog and wait for transaction to be mined into a block ...
+            props.onShouldClose(true);
+        }).catch((error: any) => {
+            console.log(error);
+            setShouldDisableBorrowButton(false);
+            setError(error.data.message);
+        });
     };
 
     const didClickCloseButton = () => {
@@ -51,7 +58,7 @@ function BorrowModal(props: Props) {
                     <Modal.Title>List NFT for Lending</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Total payment is 123.4 ETH
+                    Total payment is {ethers.utils.formatEther(paymentAmount)} ETH.
                     {errorMessage}
                 </Modal.Body>
                 <Modal.Footer>

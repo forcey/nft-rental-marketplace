@@ -38,10 +38,11 @@ async function main() {
 
     owner = accounts[0];
     console.log("Listing 5 NFTs from account " + owner.address);
-
+    await fakeNFT.setApprovalForAll(kasuContract.address, true);
+    
     for (var i = 0; i < 5; i++) {
         id = await fakeNFT.tokenOfOwnerByIndex(owner.address, i);
-        await kasuContract.listNFT(id, fakeNFT.address, getRandomInt(1, 8), getRandomInt(1, 10), getRandomInt(1, 1000))
+        await kasuContract.listNFT(id, fakeNFT.address, getRandomInt(1, 8), getRandomInt(1, 10), ethers.utils.parseEther("1").mul(getRandomInt(1, 1000)))
     }
     events = await kasuContract.queryFilter("ListNFT");
     for (const event of events) {
