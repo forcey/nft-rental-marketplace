@@ -60,15 +60,12 @@ async function main() {
     const listings = await kasuContract.viewAllListings();
     for (let i = 0; i < listings.length - 2; i++) {
         const listing = listings[i];
-        const collateralRequiredInEth = Number(hre.ethers.utils.formatEther(listing.collateralRequired));
-        console.log(`Listing id: ${listing.id}, rent duration: ${listing.duration}, collateral req: ${collateralRequiredInEth} eth, interest rate: ${listing.dailyInterestRate}%`)
-        const totalAmountRequiredInEth =
-            collateralRequiredInEth  +
-            (collateralRequiredInEth * listing.duration * (listing.dailyInterestRate / 100));
-        console.log(`${account1.address} borrowing listing ${listing.id} for a total of ${totalAmountRequiredInEth.toString()} ETH`);
+        console.log(`Listing id: ${listing.id}, rent duration: ${listing.duration}, collateral req: ${hre.ethers.utils.formatEther(listing.collateralRequired)} eth, interest rate: ${listing.dailyInterestRate}%`)
+        const totalAmountRequired = listing.collateralRequired.add(listing.collateralRequired.mul(listing.dailyInterestRate * listing.duration).div(100));
+        console.log(`${account1.address} borrowing listing ${listing.id} for a total of ${hre.ethers.utils.formatEther(totalAmountRequired)} ETH`);
         await kasuContract.connect(account1).borrow(
             listing.id,
-            { value: hre.ethers.utils.parseEther(totalAmountRequiredInEth.toString()) }
+            { value: totalAmountRequired }
         );
     }
 
