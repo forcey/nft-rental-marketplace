@@ -2,7 +2,6 @@ import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef } from 'react';
 
 import { KasuContract } from '../utils/abiManager';
-import LoginService from '../utils/LoginService';
 
 interface Props {
     tokenID: string,

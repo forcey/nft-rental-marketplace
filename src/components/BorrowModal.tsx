@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import { Alert, Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
-import LoginService from '../utils/LoginService';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
 
