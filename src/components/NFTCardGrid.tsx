@@ -6,8 +6,8 @@ type Props = {
     data: Array<NFTDisplayable>
 }
 
-function keyNFT(nft : NFTDisplayable) {
-    return `${nft.address}/${nft.tokenID}`;
+function keyNFT(nft : NFTDisplayable, index: Number) {
+    return `${nft.address}/${nft.tokenID}/${index}`;
 }
 
 function NFTCardGrid(props: Props) {
@@ -15,13 +15,13 @@ function NFTCardGrid(props: Props) {
     return (
         <Container style={styles.container}>
             {
-                groupedNFTs.map((nftGroup) => {
+                groupedNFTs.map((nftGroup, index) => {
                     return (
-                        <Row key={keyNFT(nftGroup[0])} md={3} style={styles.cardRow}>
+                        <Row key={keyNFT(nftGroup[0], index)} md={3} style={styles.cardRow}>
                             {
                                 nftGroup.map((nft) => {
                                     return (
-                                        <Col key={keyNFT(nft)}>
+                                        <Col key={keyNFT(nft, index)}>
                                             <NFTCard {...nft}/>
                                         </Col>
                                     );
