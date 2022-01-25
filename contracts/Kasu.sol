@@ -10,15 +10,7 @@ contract Kasu is KasuStorage, KasuMath {
     using EnumerableSet for EnumerableSet.UintSet;
 
     // Events
-    event ListNFT(
-        uint256 listingId,
-        uint256 indexed tokenId,
-        address indexed tokenAddress,
-        address indexed lenderAddress,
-        uint16 duration,
-        uint16 dailyInterestRate,
-        uint256 collateralRequired
-    );
+    event ListNFT(uint256 listingId);
     event TerminateRental(uint256 listingId);
 
     function getListingCount() public view returns (uint) {
@@ -102,15 +94,7 @@ contract Kasu is KasuStorage, KasuMath {
 
         _addListing(listing);
 
-        emit ListNFT(
-            listing.id,
-            listing.tokenId,
-            listing.tokenAddress,
-            listing.lenderAddress,
-            listing.duration,
-            listing.dailyInterestRate,
-            listing.collateralRequired
-        );
+        emit ListNFT(listing.id);
     }
 
     // [Feature 2] Lender's dashboard
