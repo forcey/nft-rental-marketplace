@@ -46,8 +46,14 @@ function FakeNFTContract() {
     LoginService.getInstance().signer);
 }
 
+function ERC721Contract(address) {
+  return new ethers.Contract(address,
+    ERC721_ABI(),
+    LoginService.getInstance().signer);
+}
+
 function getLoginServiceProvider() {
   return LoginService.getInstance().provider;
 }
 
-export { KasuContract, FakeNFTContract, getLoginServiceProvider, ERC721_ABI };
+export { KasuContract, FakeNFTContract, getLoginServiceProvider, ERC721Contract };

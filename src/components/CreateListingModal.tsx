@@ -9,7 +9,7 @@ import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
 import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
-    tokenID: string,
+    tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
     onShouldClose: (didListNFT: boolean) => void,
@@ -169,7 +169,10 @@ function CreateListingModal(props: Props) {
                             </InputGroup>
                         </Form.Group>
                     </Form>
-                    <ApprovalChecker verb="list" onStateChange={onApprovalStateChange} />
+                    <ApprovalChecker verb="list"
+                        tokenID={props.tokenID}
+                        tokenAddress={props.tokenAddress}
+                        onStateChange={onApprovalStateChange} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={didClickCloseButton}>Close</Button>
