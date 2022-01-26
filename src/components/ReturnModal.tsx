@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { Alert, Modal, Button } from 'react-bootstrap';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
+import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
 
 interface Props {
     listing: Listing,
@@ -17,12 +18,10 @@ type paymentBreakdown = {
 }
 
 function calculatePayment(listing: Listing): paymentBreakdown {
-    console.log(Date.now() / 1000);
-    console.log(listing.rental.rentedAt.toNumber());
-    const rentalPeriodInSeconds = Date.now() / 1000 - listing.rental.rentedAt.toNumber();
+    let rentalPeriodInSeconds = Date.now() / 1000 - listing.rental.rentedAt.toNumber();
     // Clamp the rentalPeriod to [0, duration] to avoid negative numbers (caused by local network timestamp benig manually set ahead).
-    const rentalPeriodInDays = Math.min(Math.max(rentalPeriodInSeconds / 86400, 0), listing.duration);
-    const interestPaid = listing.collateralRequired.mul(listing.dailyInterestRate * rentalPeriodInDays).div(100);
+    rentalPeriodInSeconds = Math.floor(Math.min(Math.max(rentalPeriodInSeconds, 0), listing.duration * 86400));
+    const interestPaid = listing.collateralRequired.mul(listing.dailyInterestRate * rentalPeriodInSeconds).div(86400).div(100);
     const totalInterest = listing.collateralRequired.mul(listing.dailyInterestRate * listing.duration).div(100);
 
     return {
@@ -33,16 +32,17 @@ function calculatePayment(listing: Listing): paymentBreakdown {
 }
 
 function ReturnModal(props: Props) {
-    const [shouldDisableReturnButton, setShouldDisableReturnButton] = useState(false);
+    const [transactionSubmitted, setTransactionSubmitted] = useState(false);
     const [error, setError] = useState(null);
+    const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
 
     const paymentBreakdown = calculatePayment(props.listing);
 
     const didClickReturnButton = () => {
-        const contract = KasuContract();
-        setShouldDisableReturnButton(true);
+        setTransactionSubmitted(true);
         setError(null);
 
+        const contract = KasuContract();
         contract.returnNFT(props.listing.id)
             .then((response: any) => {
                 console.log("response", response);
@@ -50,10 +50,16 @@ function ReturnModal(props: Props) {
                 props.onShouldClose(true);
             }).catch((error: any) => {
                 console.log(error);
-                setShouldDisableReturnButton(false);
+                setTransactionSubmitted(false);
                 setError(error.data.message);
             });
     };
+
+    const onApprovalStateChange = useCallback((state: ApprovalState) => {
+        setApprovalState(state);
+    }, []);
+
+    const shouldDisableReturnButton = transactionSubmitted || approvalState !== ApprovalState.APPROVED;
 
     const didClickCloseButton = () => {
         props.onShouldClose(false);
@@ -73,6 +79,10 @@ function ReturnModal(props: Props) {
                     <p>You will be refunded {ethers.utils.formatEther(paymentBreakdown.collateral)} ETH of collateral.</p>
                     <p>The lender will be paid {ethers.utils.formatEther(paymentBreakdown.interestPaid)} ETH of interest.</p>
                     <p>You will be refunded {ethers.utils.formatEther(paymentBreakdown.interestRefunded)} ETH for the interest for the remaining period.</p>
+                    <ApprovalChecker verb="return"
+                        tokenID={props.listing.tokenId}
+                        tokenAddress={props.listing.tokenAddress}
+                        onStateChange={onApprovalStateChange} />
                     {errorMessage}
                 </Modal.Body>
                 <Modal.Footer>

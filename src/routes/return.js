@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
-import {KasuContract} from '../utils/abiManager';
+import { KasuContract } from '../utils/abiManager';
 import ReturnModal from '../components/ReturnModal';
 
 function ReturnPage() {
@@ -15,7 +15,7 @@ function ReturnPage() {
         setReturnModalState({ isShown: true, listing: listing });
     }, [setReturnModalState]);
 
-    const fetchRentedNFTs = useCallback( async() => {
+    const fetchRentedNFTs = useCallback(async () => {
         // TODO: Implement fetching returnable NFTs
         async function getListings(){
             const contract = KasuContract();
@@ -40,7 +40,7 @@ function ReturnPage() {
             }
             return card;
         }));
-    }, [setRentedNFTs]);
+    }, [returnNFT, setRentedNFTs]);
 
     const onLogin = useCallback(() => {
         setIsLoggedIn(true);
