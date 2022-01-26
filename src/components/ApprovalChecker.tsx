@@ -23,10 +23,11 @@ export function ApprovalChecker(props: Props) {
     const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
     const [error, setError] = useState("");
 
+    const onStateChange = props.onStateChange;
     const changeState = useCallback((state: ApprovalState) => {
         setApprovalState(state);
-        props.onStateChange(state);
-    }, [props.onStateChange]);
+        onStateChange(state);
+    }, [onStateChange]);
 
     useEffect(() => {
         if (approvalState !== ApprovalState.UNKNOWN) {
@@ -66,7 +67,7 @@ export function ApprovalChecker(props: Props) {
                 setError(e.toString());
             }
         })();
-    }, [props.tokenAddress]);
+    }, [props.tokenAddress, changeState]);
 
     const messageMap = new Map<ApprovalState, JSX.Element>([
         [ApprovalState.UNKNOWN, <Alert variant="primary">Checking approval status...</Alert>],

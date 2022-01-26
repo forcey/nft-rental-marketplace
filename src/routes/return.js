@@ -3,14 +3,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
-import {KasuContract, ERC721_ABI} from '../utils/abiManager';
+import {KasuContract, ERC721Contract} from '../utils/abiManager';
 
 function ReturnPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
     const returnNFT = async function(listing){
-        const loginService = LoginService.getInstance();
-        const tokenContract = new ethers.Contract(listing.tokenAddress, ERC721_ABI(), loginService.signer);
+        const tokenContract = ERC721Contract(listing.tokenAddress);
         await tokenContract.approve(listing.lenderAddress, listing.tokenId)
         .then(() =>{
                 const contract = KasuContract()
