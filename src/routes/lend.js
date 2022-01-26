@@ -7,6 +7,7 @@ import CreateListingModal from '../components/CreateListingModal';
 import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
 import { FakeNFTContract, KasuContract } from '../utils/abiManager';
+import { FetchOwnedNFTs } from "../utils/opensea";
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
@@ -20,29 +21,21 @@ function LendPage() {
         setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
     }, [setListingModalState]);
 
-    const loadOpensea = useCallback((domain) => {
+    const loadOpensea = useCallback(() => {
         const parseOpenSeaResponse = (response) => {
-            const fetchedNFTs = response.assets.map(asset => ({
-                address: asset.asset_contract.address,
-                tokenID: asset.token_id,
-                name: asset.name,
-                contractName: asset.asset_contract.name,
-                imageURI: asset.image_preview_url,
+            const fetchedNFTs = response.map(metadata => ({
+                address: metadata.address,
+                tokenID: metadata.tokenID,
+                name: metadata.name,
+                contractName: metadata.contractName,
+                imageURI: metadata.imageURI,
                 actionButtonStyle: 'LIST',
                 didClickActionButton: listNFT,
             }));
             setNFTsInUserWallet(fetchedNFTs);
         };
-        // https://docs.opensea.io/reference/getting-assets
-        const options = { method: 'GET', headers: { Accept: 'application/json' } };
-        fetch(`https://${domain}/api/v1/assets?owner=${LoginService.getInstance().walletAddress}&order_direction=desc&offset=0&limit=20`, options)
-            .then(response => {
-                if (response.ok) {
-                    response.json().then(parseOpenSeaResponse);
-                } else {
-                    setError(Error(`Error ${response.status} while calling OpenSea API`))
-                }
-            })
+        FetchOwnedNFTs(LoginService.getInstance().walletAddress)
+            .then(parseOpenSeaResponse)
             .catch((error) => {
                 setError(error);
             });
@@ -70,20 +63,13 @@ function LendPage() {
     }, [setNFTsInUserWallet, listNFT]);
 
     const loadOwnedNFTsBasedOnChainId = useCallback((chainId) => {
-        switch (chainId) {
-            case 1:
-                // Ethereum mainnet - load NFTs from opensea
-                loadOpensea("api.opensea.io");
-                break;
-            case 4:
-                // Rinkeby - load NFTs from opensea testnet
-                loadOpensea("rinkeby-api.opensea.io");
-                break;
-            default:
-                // Unknown, maybe local network?
-                // Try to load fake NFTs
-                loadFakeNFT();
-                break;
+        if (chainId === 1 || chainId === 4) {
+            // Ethereum mainnet or rinkeby
+            loadOpensea();
+        } else {
+            // Unknown, maybe local network?
+            // Try to load fake NFTs
+            loadFakeNFT();
         }
     }, [loadOpensea, loadFakeNFT]);
 
