@@ -53,6 +53,29 @@ The app was created with the [ethereum-fullstack](https://github.com/dappcamp/et
    - Open Metamask > Click the account icon on top right > Import Account > Paste the private key you just copied > click Import
    - You should now have the account connected with 10000 ETH
 
+## Rinkeby Deploying Through Remix
+Go to Remix and select localhost as a workspace. This way you can have the updated code in Remix.
+
+1. Uninstall remixd. We want version **0.5.5**
+
+   ```
+   npm uninstall -g remixd
+   ```
+
+2. Start a hardhat node
+
+   ```
+   npm install -g @remix-project/remixd
+   ```
+3. Start remixd dameon in the background
+
+   ```
+   remixd -s <absolute-path-to-the-shared-folder> --remix-ide <your-remix-ide-URL-instance>
+   ```
+4. Now go to Remix and you can deploy Kasu contract
+5. Go to https://rinkeby.etherscan.io/ to check out contract creation
+
+
 ## What’s Included?
 
 Your environment will have following set up:
