@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Alert, Container } from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
 

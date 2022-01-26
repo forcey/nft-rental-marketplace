@@ -66,8 +66,8 @@ function LendPage() {
                 didClickActionButton: listNFT,
             });
         }
-        setNFTsInUserWallet(nftsInUserWallet.concat(fetchedNFTs));
-    }, [setNFTsInUserWallet, listNFT, nftsInUserWallet]);
+        setNFTsInUserWallet(fetchedNFTs);
+    }, [setNFTsInUserWallet, listNFT]);
 
     const loadOwnedNFTsBasedOnChainId = useCallback((chainId) => {
         switch (chainId) {
@@ -152,12 +152,8 @@ function LendPage() {
         });
     }, [setNFTsListedForLending, setNFTsLentOut, terminateRental]);
 
-    const onChainChanged = useCallback((chainId) => {
-        loadOwnedNFTsBasedOnChainId(chainId);
-    }, [loadOwnedNFTsBasedOnChainId]);
-
-    const loadOwnedNFTs = useCallback((provider, signer, walletAddress, chainId) => {
-        loadOwnedNFTsBasedOnChainId(chainId);
+    const loadOwnedNFTs = useCallback(() => {
+        loadOwnedNFTsBasedOnChainId(LoginService.getInstance().chainId);
         fetchOwnedOngoingListingsAndRentals();
     }, [loadOwnedNFTsBasedOnChainId, fetchOwnedOngoingListingsAndRentals]);
 
@@ -170,24 +166,21 @@ function LendPage() {
             .then(didLoginSuccessfully => {
                 setIsLoggedIn(didLoginSuccessfully);
                 if (!didLoginSuccessfully) { return; }
-                loadOwnedNFTs(
-                    LoginService.getInstance().provider,
-                    LoginService.getInstance().signer,
-                    LoginService.getInstance().walletAddress,
-                    LoginService.getInstance().chainId
-                );
+                loadOwnedNFTs();
             });
     }, [loadOwnedNFTs]);
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
         LoginService.getInstance().onLogin(loadOwnedNFTs);
-        LoginService.getInstance().onChainChanged(onChainChanged);
+        LoginService.getInstance().onChainChanged(loadOwnedNFTs);
+        LoginService.getInstance().onAccountsChanged(loadOwnedNFTs);
         return () => {
             LoginService.getInstance().detachLoginObserver(loadOwnedNFTs)
-            LoginService.getInstance().detachChainChangedObserver(onChainChanged);
+            LoginService.getInstance().detachChainChangedObserver(loadOwnedNFTs);
+            LoginService.getInstance().detachAccountsChangedObserver(loadOwnedNFTs);
         };
-    }, [onChainChanged, loadOwnedNFTs]);
+    }, [loadOwnedNFTs]);
 
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
