@@ -1,10 +1,11 @@
 import { ethers } from 'ethers';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Alert } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
 import {KasuContract, ERC721Contract} from '../utils/abiManager';
 import { FetchMetadata } from "../utils/opensea";
+import ReturnModal from '../components/ReturnModal';
 
 function mapKey(token) {
     // Normalize the address for case-sensitive map lookup.
@@ -14,18 +15,10 @@ function mapKey(token) {
 function ReturnPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
-
-    const returnNFT = async listing => {
-        const tokenContract = ERC721Contract(listing.tokenAddress);
-        await tokenContract.approve(listing.lenderAddress, listing.tokenId)
-            .then(() =>{
-                    const contract = KasuContract()
-                    contract.returnNFT(listing.id)
-                        .then(() => {
-                            console.log("Returned NFT");
-                        });
-                });
-    };
+    const [returnModalState, setReturnModalState] = useState({ isShown: false });
+    const returnNFT = useCallback((listing) => {
+        setReturnModalState({ isShown: true, listing: listing });
+    }, [setReturnModalState]);
 
     const renderFakeNFTs = useCallback(fetchedNFTsWithoutMetadata => {
         const fakeNFTs = fetchedNFTsWithoutMetadata.map(listing => {
@@ -84,7 +77,7 @@ function ReturnPage() {
                 setRentedNFTs(rentedNFTsWithMetadata);
             })
             .catch(error => console.log(error));
-    }, [setRentedNFTs]);
+    }, [returnNFT, setRentedNFTs]);
 
     const onLogin = useCallback(() => {
         setIsLoggedIn(true);
@@ -115,11 +108,25 @@ function ReturnPage() {
             });
     }, [fetchRentedNFTs]);
 
+    const closeReturnModal = useCallback((didReturn) => {
+        setReturnModalState({ isShown: false });
+        if (didReturn) {
+            fetchRentedNFTs();
+        }
+    }, [setReturnModalState, fetchRentedNFTs]);
+
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
-    return <NFTCardGrid data={rentedNFTs} />
+    return (<Container>
+        <NFTCardGrid data={rentedNFTs} />
+        {returnModalState.isShown &&
+            <ReturnModal
+                isShown={returnModalState.isShown}
+                listing={returnModalState.listing}
+                onShouldClose={closeReturnModal} />}
+    </Container>);
 }
 
 export default ReturnPage;
