@@ -122,15 +122,12 @@ contract Kasu is KasuStorage, KasuMath {
     // [Feature 3] Borrower's dashboard
     // borrower can see all the NFTs they borrowed
     function viewRentedListings(address borrowerAddress) public view returns (Listing[] memory){
-        // Iterating with a guard is expensive...
         uint256[] memory listingIds = _getListingIds();
-        Listing[] memory listings = new Listing[](0);
-        uint listingCounter = 0;
+        Listing[] memory listings = new Listing[](listingIds.length);
         for (uint i = 0; i < listingIds.length; i++) {
             Listing memory listing = _getListingById(listingIds[i]);
             if (listing.rental.borrowerAddress == borrowerAddress){
-                listings[listingCounter] = listing;
-                listingCounter += 1;
+                listings[i] = listing;
             }
         }
         return listings;
@@ -138,12 +135,14 @@ contract Kasu is KasuStorage, KasuMath {
 
     // [Feature 3] Borrower's dashboard
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
-    function returnNFT(uint256 listingId) public payable{
+    function returnNFT(uint256 listingId) public {
         Listing memory listing = _getListingById(listingId);
+        require(listing.id != 0, "Invalid listingId");
         IERC721(listing.tokenAddress).safeTransferFrom(listing.rental.borrowerAddress,
                                                        listing.lenderAddress,
                                                        listing.tokenId);
-        payable(listing.rental.borrowerAddress).call{value: listing.collateralRequired};
+        (bool sent,) = payable(listing.rental.borrowerAddress).call{value: listing.collateralRequired}("");
+        require(sent, "failed to send collateral back to borrower");
         uint elapsedRentalTime = block.timestamp - listing.rental.rentedAt;
         uint256 interestAmount = KasuMath._calculateInterest(_getListingById(listingId), elapsedRentalTime);
         payable(listing.lenderAddress).call{value: interestAmount};
