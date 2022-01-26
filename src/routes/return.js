@@ -49,13 +49,15 @@ function ReturnPage() {
         setRentedNFTs(nfts);
     }, []);
 
+    const onLogin = useCallback(() => {
+        setIsLoggedIn(true);
+        fetchRentedNFTs();
+    }, [setIsLoggedIn, fetchRentedNFTs]);
+
     useEffect(() => {
-        LoginService.getInstance().onLogin(() => {
-            setIsLoggedIn(true);
-            fetchRentedNFTs();
-        });
-        return () => LoginService.getInstance().detachLoginObserver(fetchRentedNFTs);
-    }, [fetchRentedNFTs]);
+        LoginService.getInstance().onLogin(onLogin);
+        return () => LoginService.getInstance().detachLoginObserver(onLogin);
+    }, [onLogin]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);

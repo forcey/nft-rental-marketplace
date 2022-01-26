@@ -170,20 +170,21 @@ function LendPage() {
             });
     }, [loadOwnedNFTs]);
 
+    const onLogin = useCallback(() => {
+        setIsLoggedIn(true);
+        loadOwnedNFTs();
+    }, [setIsLoggedIn, loadOwnedNFTs]);
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(() => {
-            setIsLoggedIn(true);
-            loadOwnedNFTs();
-        });
+        LoginService.getInstance().onLogin(onLogin);
         LoginService.getInstance().onChainChanged(loadOwnedNFTs);
         LoginService.getInstance().onAccountsChanged(loadOwnedNFTs);
         return () => {
-            LoginService.getInstance().detachLoginObserver(loadOwnedNFTs)
+            LoginService.getInstance().detachLoginObserver(onLogin);
             LoginService.getInstance().detachChainChangedObserver(loadOwnedNFTs);
             LoginService.getInstance().detachAccountsChangedObserver(loadOwnedNFTs);
         };
-    }, [loadOwnedNFTs, setIsLoggedIn]);
+    }, [loadOwnedNFTs, onLogin]);
 
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });

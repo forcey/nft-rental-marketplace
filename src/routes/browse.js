@@ -54,20 +54,21 @@ function BrowsePage() {
         })();
     }, [setListings, borrowNFT]);
 
+    const onLogin = useCallback(() => {
+        setIsLoggedIn(true);
+        fetchListings();
+    }, [setIsLoggedIn, fetchListings]);
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(() => {
-            setIsLoggedIn(true);
-            fetchListings();
-        });
+        LoginService.getInstance().onLogin(onLogin);
         LoginService.getInstance().onAccountsChanged(fetchListings);    // TODO: actually only need to refresh button status.
         LoginService.getInstance().onChainChanged(fetchListings);
         return () => {
-            LoginService.getInstance().detachLoginObserver(fetchListings);
+            LoginService.getInstance().detachLoginObserver(onLogin);
             LoginService.getInstance().detachAccountsChangedObserver(fetchListings);
             LoginService.getInstance().detachChainChangedObserver(fetchListings);
         };
-    }, [fetchListings]);
+    }, [fetchListings, onLogin]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);
