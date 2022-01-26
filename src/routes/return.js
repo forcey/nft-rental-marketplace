@@ -1,23 +1,21 @@
 import { ethers } from 'ethers';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Alert } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
-import {KasuContract, ERC721Contract} from '../utils/abiManager';
+import { KasuContract } from '../utils/abiManager';
+import ReturnModal from '../components/ReturnModal';
 
 function ReturnPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
-    const returnNFT = async function(listing){
-        console.log('running');
-        const tokenContract = ERC721Contract(listing.tokenAddress);
-        await tokenContract.approve(listing.lenderAddress, listing.tokenId)
-        .then(() =>{
-                const contract = KasuContract()
-                contract.returnNFT(listing.id)
-            })
-    }
-    const fetchRentedNFTs = useCallback( async() => {
+
+    const [returnModalState, setReturnModalState] = useState({ isShown: false });
+    const returnNFT = useCallback((listing) => {
+        setReturnModalState({ isShown: true, listing: listing });
+    }, [setReturnModalState]);
+
+    const fetchRentedNFTs = useCallback(async () => {
         // TODO: Implement fetching returnable NFTs
         async function getListings(){
             const contract = KasuContract();
@@ -42,7 +40,7 @@ function ReturnPage() {
             }
             return card;
         }));
-    }, [setRentedNFTs]);
+    }, [returnNFT, setRentedNFTs]);
 
     const onLogin = useCallback(() => {
         setIsLoggedIn(true);
@@ -67,11 +65,25 @@ function ReturnPage() {
             });
     }, [fetchRentedNFTs]);
 
+    const closeReturnModal = useCallback((didReturn) => {
+        setReturnModalState({ isShown: false });
+        if (didReturn) {
+            fetchRentedNFTs();
+        }
+    }, [setReturnModalState, fetchRentedNFTs]);
+
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
-    return <NFTCardGrid data={rentedNFTs} />
+    return (<Container>
+        <NFTCardGrid data={rentedNFTs} />
+        {returnModalState.isShown &&
+            <ReturnModal
+                isShown={returnModalState.isShown}
+                listing={returnModalState.listing}
+                onShouldClose={closeReturnModal} />}
+    </Container>);
 }
 
 export default ReturnPage;
