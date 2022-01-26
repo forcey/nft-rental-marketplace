@@ -90,7 +90,7 @@ function LendPage() {
     }, [nftsInUserWallet, setNFTsInUserWallet]);
 
     // eslint-disable-next-line
-    const unlistNFT = useCallback((tokenID, tokenAddress) => {
+    const unlistNFT = useCallback((listingID) => {
         // TODO: Implement unlist smart contract integration logic
     }, []);
 
