@@ -59,7 +59,7 @@ describe("Kasu", function () {
     it("should emit listNFT event when NFT is listed", async function () {
       await expect(contract.connect(owner).listNFT(TOKEN_ID_1, TOKEN_ADDRESS, MAX_RENT_DURATION, DAILY_INTEREST_RATE, COLLATERAL_REQUIRED))
         .to.emit(contract, "ListNFT")
-        .withArgs(1);
+        .withArgs(1, TOKEN_ID_1);
     });
   });
 
