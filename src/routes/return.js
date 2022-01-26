@@ -19,7 +19,6 @@ function ReturnPage() {
     }
     const fetchRentedNFTs = useCallback( async() => {
         // TODO: Implement fetching returnable NFTs
-        const loginService = LoginService.getInstance();
         async function getListings(){
             const contract = KasuContract();
             const listings = await contract.viewRentedListings();
