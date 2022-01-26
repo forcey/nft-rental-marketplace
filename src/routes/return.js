@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container } from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
 
 function ReturnPage() {
+    const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
     const fetchRentedNFTs = useCallback(() => {
         // TODO: Implement fetching returnable NFTs
@@ -48,10 +49,15 @@ function ReturnPage() {
         setRentedNFTs(nfts);
     }, []);
 
+    const onLogin = useCallback(() => {
+        setIsLoggedIn(true);
+        fetchRentedNFTs();
+    }, [setIsLoggedIn, fetchRentedNFTs]);
+
     useEffect(() => {
-        LoginService.getInstance().onLogin(fetchRentedNFTs);
-        return () => LoginService.getInstance().detachLoginObserver(fetchRentedNFTs);
-    }, [fetchRentedNFTs]);
+        LoginService.getInstance().onLogin(onLogin);
+        return () => LoginService.getInstance().detachLoginObserver(onLogin);
+    }, [onLogin]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);
@@ -60,18 +66,16 @@ function ReturnPage() {
         didRunOneTimeEffectRef.current = true;
         LoginService.getInstance().maybeLogin()
             .then(didLoginSuccessfully => {
+                setIsLoggedIn(didLoginSuccessfully);
                 if (!didLoginSuccessfully) { return; }
                 fetchRentedNFTs();
             });
     }, [fetchRentedNFTs]);
 
-    if (!LoginService.getInstance().isLoggedIn) {
-        return (
-            <Container>
-                <h4>Connect Your Wallet</h4>
-            </Container>
-        );
+    if (!isLoggedIn) {
+        return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
+
     return <NFTCardGrid data={rentedNFTs} />
 }
 

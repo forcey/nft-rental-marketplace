@@ -86,8 +86,8 @@ export default class LoginService {
                 const returnedAccounts = values[0]
                 const primaryWalletAddress = returnedAccounts[0];
                 const returnedChainID = values[1];
-                LoginService.getInstance()._walletAddress = primaryWalletAddress;
-                LoginService.getInstance()._chainId = returnedChainID;
+                LoginService.instance._walletAddress = primaryWalletAddress;
+                LoginService.instance._chainId = returnedChainID;
                 if (returnedAccounts.length > 0) {
                     LoginService.instance.attachObservers();
                 }
@@ -99,10 +99,14 @@ export default class LoginService {
 
     private attachObservers() {
         window.ethereum.on('accountsChanged', (accounts: Array<string>) => {
+            LoginService.instance._provider = new ethers.providers.Web3Provider(window.ethereum);
+            LoginService.instance._signer = LoginService.instance._provider.getSigner();
             LoginService.instance._walletAddress = accounts[0];
             LoginService.instance._accountChangedObservers.forEach(observer => observer(accounts));
         });
         window.ethereum.on('chainChanged', (chainId: any) => {
+            LoginService.instance._provider = new ethers.providers.Web3Provider(window.ethereum);
+            LoginService.instance._signer = LoginService.instance._provider.getSigner();
             LoginService.instance._chainId = Number(chainId);
             LoginService.instance._chainChangedObservers.forEach(observer => observer(Number(chainId)));
         });

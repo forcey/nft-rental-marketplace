@@ -19,6 +19,7 @@ function BrowsePage() {
     const [nftList, setNFTList] = useState([]); // array of NFTDisplayable
     const [error, setError] = useState();
     const [borrowModalState, setBorrowModalState] = useState({ isShown: false });
+    const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const borrowNFT = useCallback((listing) => {
         setBorrowModalState({ isShown: true, listing: listing });
     }, [setBorrowModalState]);
@@ -96,17 +97,21 @@ function BrowsePage() {
     }, [listings, metadata, borrowNFT]);
     useEffect(renderListings, [renderListings]);
 
+    const onLogin = useCallback(() => {
+        setIsLoggedIn(true);
+        fetchListings();
+    }, [setIsLoggedIn, fetchListings]);
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(fetchListings);
+        LoginService.getInstance().onLogin(onLogin);
         LoginService.getInstance().onAccountsChanged(renderListings);
         LoginService.getInstance().onChainChanged(fetchListings);
         return () => {
-            LoginService.getInstance().detachLoginObserver(fetchListings);
+            LoginService.getInstance().detachLoginObserver(onLogin);
             LoginService.getInstance().detachAccountsChangedObserver(renderListings);
             LoginService.getInstance().detachChainChangedObserver(fetchListings);
         };
-    }, [fetchListings, renderListings]);
+    }, [fetchListings, renderListings, onLogin]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);
@@ -115,6 +120,7 @@ function BrowsePage() {
         didRunOneTimeEffectRef.current = true;
         LoginService.getInstance().maybeLogin()
             .then(didLoginSuccessfully => {
+                setIsLoggedIn(didLoginSuccessfully);
                 if (!didLoginSuccessfully) { return; }
                 fetchListings();
             });
@@ -127,7 +133,7 @@ function BrowsePage() {
         }
     }, [setBorrowModalState, fetchListings]);
 
-    if (!LoginService.getInstance().isLoggedIn) {
+    if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
