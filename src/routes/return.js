@@ -12,6 +12,7 @@ function ReturnPage() {
         const abiManager = new ABIManager(loginService.signer);
         const contract = abiManager.KasuContract();
         const nfts = await contract.viewRentedListings(loginService.walletAddress);
+        console.log(loginService.walletAddress);
         console.log(nfts)
         setRentedNFTs(nfts);
     }, []);

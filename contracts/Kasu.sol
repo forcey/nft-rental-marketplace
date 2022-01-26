@@ -124,11 +124,13 @@ contract Kasu is KasuStorage, KasuMath {
     function viewRentedListings(address borrowerAddress) public view returns (Listing[] memory){
         // Iterating with a guard is expensive...
         uint256[] memory listingIds = _getListingIds();
-        Listing[] memory listings = new Listing[](listingIds.length);
+        Listing[] memory listings = new Listing[](0);
+        uint listingCounter = 0;
         for (uint i = 0; i < listingIds.length; i++) {
             Listing memory listing = _getListingById(listingIds[i]);
             if (listing.rental.borrowerAddress == borrowerAddress){
-                listings[i] = listing;
+                listings[listingCounter] = listing;
+                listingCounter += 1;
             }
         }
         return listings;
