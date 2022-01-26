@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import NFTCardGrid from '../components/NFTCardGrid';
 import LoginService from '../utils/LoginService';
-import {KasuContract, ERC721Contract} from '../utils/abiManager';
+import { KasuContract } from '../utils/abiManager';
 import { FetchMetadata } from "../utils/opensea";
 import ReturnModal from '../components/ReturnModal';
 
@@ -37,7 +37,7 @@ function ReturnPage() {
             };
         });
         setRentedNFTs(fakeNFTs);
-    }, [setRentedNFTs]);
+    }, [setRentedNFTs, returnNFT]);
 
     const fetchRentedNFTs = useCallback(async () => {
         const contract = KasuContract();
@@ -77,7 +77,7 @@ function ReturnPage() {
                 setRentedNFTs(rentedNFTsWithMetadata);
             })
             .catch(error => console.log(error));
-    }, [returnNFT, setRentedNFTs]);
+    }, [returnNFT, setRentedNFTs, renderFakeNFTs]);
 
     const onLogin = useCallback(() => {
         setIsLoggedIn(true);
@@ -93,7 +93,7 @@ function ReturnPage() {
             LoginService.getInstance().detachChainChangedObserver(fetchRentedNFTs);
             LoginService.getInstance().detachAccountsChangedObserver(fetchRentedNFTs);
         }
-    }, [onLogin]);
+    }, [onLogin, fetchRentedNFTs]);
 
     // One-time Effects
     const didRunOneTimeEffectRef = useRef(false);
