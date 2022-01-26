@@ -122,7 +122,7 @@ contract Kasu is KasuStorage, KasuMath {
     // [Feature 3] Borrower's dashboard
     // borrower can see all the NFTs they borrowed
     function viewRentedListings(address borrowerAddress) public view returns (Listing[] memory){
-        // Iterating with a guard is expesnive...
+        // Iterating with a guard is expensive...
         uint256[] memory listingIds = _getListingIds();
         Listing[] memory listings = new Listing[](listingIds.length);
         for (uint i = 0; i < listingIds.length; i++) {
