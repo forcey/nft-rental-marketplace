@@ -14,14 +14,19 @@ function mapKey(token) {
 function ReturnPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
-    const returnNFT = async function(listing){
+
+    const returnNFT = async listing => {
         const tokenContract = ERC721Contract(listing.tokenAddress);
         await tokenContract.approve(listing.lenderAddress, listing.tokenId)
-        .then(() =>{
-                const contract = KasuContract()
-                contract.returnNFT(listing.id)
-            })
-    }
+            .then(() =>{
+                    const contract = KasuContract()
+                    contract.returnNFT(listing.id)
+                        .then(() => {
+                            console.log("Returned NFT");
+                        });
+                });
+    };
+
     const renderFakeNFTs = useCallback(fetchedNFTsWithoutMetadata => {
         const fakeNFTs = fetchedNFTsWithoutMetadata.map(listing => {
             return {
@@ -40,10 +45,10 @@ function ReturnPage() {
         });
         setRentedNFTs(fakeNFTs);
     }, [setRentedNFTs]);
+
     const fetchRentedNFTs = useCallback(async () => {
         const contract = KasuContract();
         const fetchedRentedNFTsWithoutMetadata = await contract.viewRentedListings();
-        console.log('fetchedRentedNFTsWithoutMetadata ', fetchedRentedNFTsWithoutMetadata);
         const partialMetadata = fetchedRentedNFTsWithoutMetadata.map(listing => ({
             address: listing.tokenAddress,
             tokenID: listing.tokenId.toString(),
@@ -57,7 +62,6 @@ function ReturnPage() {
             .then(response => {
                 const kvPairs = response.map(metadata => [mapKey(metadata), metadata]);
                 const metadata = new Map(kvPairs);
-                console.log('metadata ', metadata);
                 const rentedNFTsWithMetadata = fetchedRentedNFTsWithoutMetadata.map(listing => {
                     const card = {
                         address: listing.tokenAddress,
@@ -89,7 +93,13 @@ function ReturnPage() {
 
     useEffect(() => {
         LoginService.getInstance().onLogin(onLogin);
-        return () => LoginService.getInstance().detachLoginObserver(onLogin);
+        LoginService.getInstance().onChainChanged(fetchRentedNFTs);
+        LoginService.getInstance().onAccountsChanged(fetchRentedNFTs);
+        return () => {
+            LoginService.getInstance().detachLoginObserver(onLogin);
+            LoginService.getInstance().detachChainChangedObserver(fetchRentedNFTs);
+            LoginService.getInstance().detachAccountsChangedObserver(fetchRentedNFTs);
+        }
     }, [onLogin]);
 
     // One-time Effects
