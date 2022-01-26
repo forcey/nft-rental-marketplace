@@ -74,20 +74,15 @@ function LendPage() {
         }
     }, [loadOpensea, loadFakeNFT]);
 
-    // TODO: on refresh we have to filter out current listed listings from the opensea search
     const fetchAvailableListings = useCallback(() => {
         const contract = KasuContract();
         const filter = { address: contract.address,
                          topics: [ethers.utils.id("ListNFT(uint256)")] };
 
-        console.log("fetching available listings...");
         LoginService.getInstance().provider.on(filter, event => {
-            console.log("event", event);
             const tokenID = Number(event.data);
             nftsListedForLendingRef.current.add(tokenID);
-            console.log("nftsListedForLendingRef", nftsListedForLendingRef);
             setNFTsInUserWallet(nfts => {
-                console.log("nfts", nfts);
                 return nfts.filter(obj => !nftsListedForLendingRef.current.has(obj.tokenID.toNumber()));
               });
         });
@@ -99,7 +94,7 @@ function LendPage() {
         // TODO: Implement unlist smart contract integration logic
     }, []);
 
-    const terminateRental = useCallback((tokenID, tokenAddress, listingID) => {
+    const terminateRental = useCallback((listingID) => {
         const contract = KasuContract();
         contract.terminateRental(listingID)
           .then(() => {
