@@ -23,7 +23,16 @@ export function ApprovalChecker(props: Props) {
     const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
     const [error, setError] = useState("");
 
+    const changeState = useCallback((state: ApprovalState) => {
+        setApprovalState(state);
+        props.onStateChange(state);
+    }, [props.onStateChange]);
+
     useEffect(() => {
+        if (approvalState !== ApprovalState.UNKNOWN) {
+            return;
+        }
+
         // Load the initial approval state.
         const tokenContract = ERC721Contract(props.tokenAddress);
         const kasuContract = KasuContract();
@@ -33,9 +42,9 @@ export function ApprovalChecker(props: Props) {
                 const walletAddress = LoginService.getInstance().walletAddress;
                 const approved = (await tokenContract.getApproved(props.tokenID) === kasuContract.address ||
                     await tokenContract.isApprovedForAll(walletAddress, kasuContract.address));
-                setApprovalState(approved ? ApprovalState.APPROVED : ApprovalState.NOT_APPROVED);
+                changeState(approved ? ApprovalState.APPROVED : ApprovalState.NOT_APPROVED);
             } catch (e: any) {
-                setApprovalState(ApprovalState.ERROR);
+                changeState(ApprovalState.ERROR);
                 setError(e.toString());
             }
         })();
@@ -43,13 +52,27 @@ export function ApprovalChecker(props: Props) {
 
     const didClickApproveButton = useCallback(() => {
         // Send the approve transaction.
-    }, []);
+        const tokenContract = ERC721Contract(props.tokenAddress);
+        const kasuContract = KasuContract();
 
-    const messageMap = new Map<ApprovalState, string|JSX.Element>([
-        [ApprovalState.UNKNOWN, "Checking approval status..."],
-        [ApprovalState.NOT_APPROVED, `In order to ${props.verb} the NFT, Kasu must be approved to manage the item on your behalf.`],
-        [ApprovalState.PENDING, "Waiting for approval to be completed..."],
-        [ApprovalState.APPROVED, `Item is approved and ready to be ${props.verb}ed.`],
+        (async () => {
+            changeState(ApprovalState.PENDING);
+            try {
+                const tx = await tokenContract.setApprovalForAll(kasuContract.address, true);
+                await tx.wait();
+                changeState(ApprovalState.APPROVED);
+            } catch (e: any) {
+                changeState(ApprovalState.ERROR);
+                setError(e.toString());
+            }
+        })();
+    }, [props.tokenAddress]);
+
+    const messageMap = new Map<ApprovalState, JSX.Element>([
+        [ApprovalState.UNKNOWN, <Alert variant="primary">Checking approval status...</Alert>],
+        [ApprovalState.NOT_APPROVED, <Alert variant="primary">In order to {props.verb} the NFT, Kasu must be approved to manage the item on your behalf.</Alert>],
+        [ApprovalState.PENDING, <Alert variant="primary">Waiting for approval to be completed...</Alert>],
+        [ApprovalState.APPROVED, <Alert variant="success">Item is approved and ready to be {props.verb}ed.</Alert>],
         [ApprovalState.ERROR, <Alert variant="danger">{error}</Alert>],
     ]);
 
@@ -79,9 +102,7 @@ export function ApprovalChecker(props: Props) {
         <Card>
             <Card.Header>Pre-requisite</Card.Header>
             <Card.Body>
-                <Card.Text>
-                    {message}
-                </Card.Text>
+                {message}
                 {button}
             </Card.Body>
         </Card>);
