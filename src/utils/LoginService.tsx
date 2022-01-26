@@ -86,8 +86,8 @@ export default class LoginService {
                 const returnedAccounts = values[0]
                 const primaryWalletAddress = returnedAccounts[0];
                 const returnedChainID = values[1];
-                LoginService.getInstance()._walletAddress = primaryWalletAddress;
-                LoginService.getInstance()._chainId = returnedChainID;
+                LoginService.instance._walletAddress = primaryWalletAddress;
+                LoginService.instance._chainId = returnedChainID;
                 if (returnedAccounts.length > 0) {
                     LoginService.instance.attachObservers();
                 }

@@ -11,6 +11,7 @@ function BrowsePage() {
     const [listings, setListings] = useState([]);
     const [error, setError] = useState();
     const [borrowModalState, setBorrowModalState] = useState({ isShown: false });
+    const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const borrowNFT = useCallback((listing) => {
         setBorrowModalState({ isShown: true, listing: listing });
     }, [setBorrowModalState]);
@@ -72,6 +73,7 @@ function BrowsePage() {
         didRunOneTimeEffectRef.current = true;
         LoginService.getInstance().maybeLogin()
             .then(didLoginSuccessfully => {
+                setIsLoggedIn(didLoginSuccessfully);
                 if (!didLoginSuccessfully) { return; }
                 fetchListings();
             });
@@ -84,7 +86,7 @@ function BrowsePage() {
         }
     }, [setBorrowModalState, fetchListings]);
 
-    if (!LoginService.getInstance().isLoggedIn) {
+    if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 

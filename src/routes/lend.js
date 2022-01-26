@@ -14,6 +14,7 @@ function LendPage() {
     const nftsTerminatedRentalsRef = useRef(new Set());
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
+    const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [listingModalState, setListingModalState] = useState({ isShown: false, tokenID: '', tokenAddress: ''});
     const listNFT = useCallback((tokenID, tokenAddress) => {
         setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
@@ -167,6 +168,7 @@ function LendPage() {
         didRunOneTimeEffectRef.current = true;
         LoginService.getInstance().maybeLogin()
             .then(didLoginSuccessfully => {
+                setIsLoggedIn(didLoginSuccessfully);
                 if (!didLoginSuccessfully) { return; }
                 loadOwnedNFTs(
                     LoginService.getInstance().provider,
@@ -194,12 +196,8 @@ function LendPage() {
         }
     }, [setListingModalState, fetchOwnedOngoingListingsAndRentals]);
 
-    if (!LoginService.getInstance().isLoggedIn) {
-        return (
-            <Container>
-                <h4>Connect Your Wallet</h4>
-            </Container>
-        );
+    if (!isLoggedIn) {
+        return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
 
     if (error) {
