@@ -40,14 +40,22 @@ function Login() {
 
     if (LoginService.getInstance().isLoggedIn) {
         return (
-            <Navbar.Text>
-                Wallet: {walletAddress}
-                <Badge pill>{chainName}</Badge>
-            </Navbar.Text>
+            <>
+                <Navbar.Text>
+                    Wallet: {walletAddress}
+                </Navbar.Text>
+                <Badge style={styles.chainBadge} bg="primary">{chainName}</Badge>
+            </>
         );
     }
 
     return (<Button variant="primary" onClick={LoginService.getInstance().linkAccount}>Connect Wallet</Button>);
 }
+
+const styles = {
+    chainBadge: {
+        marginLeft: "0.5rem",
+    }
+};
 
 export default Login;
