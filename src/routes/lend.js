@@ -87,7 +87,7 @@ function LendPage() {
               });
         });
 
-    }, [nftsInUserWallet, setNFTsInUserWallet, setListingModalState]);
+    }, [nftsInUserWallet, setNFTsInUserWallet]);
 
     // eslint-disable-next-line
     const unlistNFT = useCallback((tokenID, tokenAddress) => {
