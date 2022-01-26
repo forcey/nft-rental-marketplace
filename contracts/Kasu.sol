@@ -121,16 +121,27 @@ contract Kasu is KasuStorage, KasuMath {
 
     // [Feature 3] Borrower's dashboard
     // borrower can see all the NFTs they borrowed
-    function viewRentedListings(address borrowerAddress) public view returns (Listing[] memory){
-        uint256[] memory listingIds = _getListingIds();
-        Listing[] memory listings = new Listing[](listingIds.length);
-        for (uint i = 0; i < listingIds.length; i++) {
-            Listing memory listing = _getListingById(listingIds[i]);
-            if (listing.rental.borrowerAddress == borrowerAddress){
-                listings[i] = listing;
+    function viewRentedListings() public view returns (Listing[] memory){
+        // Note: Dynamic arrays are not allowed unless they are storage
+        // so we need to allocate a statically sized-array to return.
+        // We can probably optimize this, but this should functionally work for now.
+        uint listingsRented = 0;
+        for (uint i = 0; i < listingsSet.length(); i++) {
+            Listing memory listing = _getListingById(listingsSet.at(i));
+            if (listing.rental.borrowerAddress == msg.sender) {
+                listingsRented++;
             }
         }
-        return listings;
+        Listing[] memory rentedListings = new Listing[](listingsRented);
+        uint j = 0;
+        for (uint i = 0; i < listingsSet.length(); i++) {
+            Listing memory listing = _getListingById(listingsSet.at(i));
+            if (listing.rental.borrowerAddress == msg.sender) {
+                rentedListings[j] = listing;
+                j++;
+            }
+        }
+        return rentedListings;
     }
 
     // [Feature 3] Borrower's dashboard
