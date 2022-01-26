@@ -1,20 +1,25 @@
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 
 import { KasuContract, getLoginServiceProvider } from '../utils/abiManager';
 import { ethers } from 'ethers';
+import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
+
 import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
-    tokenID: string,
+    tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
     onShouldClose: (didListNFT: boolean) => void,
 }
 
 function CreateListingModal(props: Props) {
-    const [shouldDisableListButton, setShouldDisableListButton] = useState(true);
+    const [validationOk, setValidationOk] = useState(false);
+    const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
+    const [transactionSubmitted, setTransactionSubmitted] = useState(false);
+
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
     const isValidInterestRateRef = useRef(false);
@@ -33,6 +38,7 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
+        setTransactionSubmitted(true);
         const contract = KasuContract();
         try {
             contract.listNFT(
@@ -71,7 +77,6 @@ function CreateListingModal(props: Props) {
         const loginServiceProvider = getLoginServiceProvider();
         resolve(
             loginServiceProvider.on("block", () => {
-                setShouldDisableListButton(true);
                 props.onShouldClose(true);
             })
         );
@@ -84,20 +89,28 @@ function CreateListingModal(props: Props) {
     const validateCollateral = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputCollateral = parseFloat(event.target.value);
         isValidCollateralRef.current = inputCollateral >= 0.0 && inputCollateral <= 100.0;
-        setShouldDisableListButton(!isValidCollateralRef.current || !isValidRentalDurationRef.current || !isValidInterestRateRef.current);
+        setValidationOk(isValidCollateralRef.current && isValidRentalDurationRef.current && isValidInterestRateRef.current);
     };
 
     const validateRentalDuration = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputRentalDuration = parseFloat(event.target.value);
         isValidRentalDurationRef.current = inputRentalDuration > 0.0 && inputRentalDuration <= 90.0;
-        setShouldDisableListButton(!isValidCollateralRef.current || !isValidRentalDurationRef.current || !isValidInterestRateRef.current);
+        setValidationOk(isValidCollateralRef.current && isValidRentalDurationRef.current && isValidInterestRateRef.current);
     };
 
     const validateInterestRate = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputInterestRate = parseFloat(event.target.value);
         isValidInterestRateRef.current = inputInterestRate >= 0.0 && inputInterestRate <= 100.0;
-        setShouldDisableListButton(!isValidCollateralRef.current || !isValidRentalDurationRef.current || !isValidInterestRateRef.current);
+        setValidationOk(isValidCollateralRef.current && isValidRentalDurationRef.current && isValidInterestRateRef.current);
     };
+
+    const onApprovalStateChange = useCallback((state: ApprovalState) => {
+        setApprovalState(state);
+    }, []);
+
+    const shouldDisableListButton = transactionSubmitted ||
+        approvalState !== ApprovalState.APPROVED ||
+        !validationOk;
 
     return (
         <Modal show={props.isShown}>
@@ -156,6 +169,10 @@ function CreateListingModal(props: Props) {
                             </InputGroup>
                         </Form.Group>
                     </Form>
+                    <ApprovalChecker verb="list"
+                        tokenID={props.tokenID}
+                        tokenAddress={props.tokenAddress}
+                        onStateChange={onApprovalStateChange} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={didClickCloseButton}>Close</Button>
