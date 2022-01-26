@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import hardhat_abis from '../abis/hardhat';
 import rinkeby_abis from '../abis/rinkeby';
 import mainnet_abis from '../abis/mainnet';
+import erc721_abi from '../abis/ERC721.json'
 import LoginService from './LoginService';
 
 function getABIDirectory() {
@@ -29,6 +30,10 @@ function FakeNFT() {
   return getABIDirectory().FakeNFT;
 }
 
+function ERC721_ABI() {
+  return erc721_abi;
+}
+
 function KasuContract() {
   return new ethers.Contract(contractAddress().Kasu,
     Kasu().abi,
@@ -45,4 +50,4 @@ function getLoginServiceProvider() {
   return LoginService.getInstance().provider;
 }
 
-export { KasuContract, FakeNFTContract, getLoginServiceProvider };
+export { KasuContract, FakeNFTContract, getLoginServiceProvider, ERC721_ABI };
