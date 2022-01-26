@@ -13,6 +13,7 @@ function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
     const nftsTerminatedRentalsRef = useRef(new Set());
+    const nftsListedForLendingRef = useRef(new Set());
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
@@ -72,6 +73,26 @@ function LendPage() {
             loadFakeNFT();
         }
     }, [loadOpensea, loadFakeNFT]);
+
+    // TODO: on refresh we have to filter out current listed listings from the opensea search
+    const fetchAvailableListings = useCallback(() => {
+        const contract = KasuContract();
+        const filter = { address: contract.address,
+                         topics: [ethers.utils.id("ListNFT(uint256)")] };
+
+        console.log("fetching available listings...");
+        LoginService.getInstance().provider.on(filter, event => {
+            console.log("event", event);
+            const tokenID = Number(event.data);
+            nftsListedForLendingRef.current.add(tokenID);
+            console.log("nftsListedForLendingRef", nftsListedForLendingRef);
+            setNFTsInUserWallet(nfts => {
+                console.log("nfts", nfts);
+                return nfts.filter(obj => !nftsListedForLendingRef.current.has(obj.tokenID.toNumber()));
+              });
+        });
+
+    }, [nftsInUserWallet, setNFTsInUserWallet, setListingModalState]);
 
     // eslint-disable-next-line
     const unlistNFT = useCallback((tokenID, tokenAddress) => {
@@ -187,9 +208,10 @@ function LendPage() {
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
         if (didListNFT) {
+            fetchAvailableListings();
             fetchOwnedOngoingListingsAndRentals();
         }
-    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals]);
+    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals, fetchAvailableListings]);
 
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
