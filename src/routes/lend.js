@@ -172,7 +172,10 @@ function LendPage() {
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(loadOwnedNFTs);
+        LoginService.getInstance().onLogin(() => {
+            setIsLoggedIn(true);
+            loadOwnedNFTs();
+        });
         LoginService.getInstance().onChainChanged(loadOwnedNFTs);
         LoginService.getInstance().onAccountsChanged(loadOwnedNFTs);
         return () => {
@@ -180,7 +183,7 @@ function LendPage() {
             LoginService.getInstance().detachChainChangedObserver(loadOwnedNFTs);
             LoginService.getInstance().detachAccountsChangedObserver(loadOwnedNFTs);
         };
-    }, [loadOwnedNFTs]);
+    }, [loadOwnedNFTs, setIsLoggedIn]);
 
     const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });

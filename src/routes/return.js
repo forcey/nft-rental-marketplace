@@ -50,7 +50,10 @@ function ReturnPage() {
     }, []);
 
     useEffect(() => {
-        LoginService.getInstance().onLogin(fetchRentedNFTs);
+        LoginService.getInstance().onLogin(() => {
+            setIsLoggedIn(true);
+            fetchRentedNFTs();
+        });
         return () => LoginService.getInstance().detachLoginObserver(fetchRentedNFTs);
     }, [fetchRentedNFTs]);
 

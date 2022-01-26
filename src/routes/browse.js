@@ -56,7 +56,10 @@ function BrowsePage() {
 
     // Listen to login service events. This will get run multiple times and can't be only run one-time.
     useEffect(() => {
-        LoginService.getInstance().onLogin(fetchListings);
+        LoginService.getInstance().onLogin(() => {
+            setIsLoggedIn(true);
+            fetchListings();
+        });
         LoginService.getInstance().onAccountsChanged(fetchListings);    // TODO: actually only need to refresh button status.
         LoginService.getInstance().onChainChanged(fetchListings);
         return () => {
