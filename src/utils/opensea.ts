@@ -1,5 +1,6 @@
 import LoginService from "./LoginService";
 import { NFTMetadata } from "./common";
+import { ethers } from "ethers";
 
 const chainToDomain = new Map<number, string>([
     [1, "api.opensea.io"],
@@ -33,7 +34,7 @@ async function getAssets(additionalParams: URLSearchParams): Promise<Array<NFTMe
     }
     return (await response.json()).assets.map((asset: any) => ({
         address: asset.asset_contract.address,
-        tokenID: asset.token_id,
+        tokenID: ethers.BigNumber.from(asset.token_id),
         name: asset.name,
         contractName: asset.asset_contract.name,
         imageURI: asset.image_preview_url
