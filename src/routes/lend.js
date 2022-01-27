@@ -83,7 +83,8 @@ function LendPage() {
             const tokenID = Number(event.data);
             nftsListedForLendingRef.current.add(tokenID);
             setNFTsInUserWallet(nfts => {
-                return nfts.filter(obj => !nftsListedForLendingRef.current.has(obj.tokenID.toNumber()));
+                console.log("nfts", nfts[0]);
+                return nfts.filter(obj => !nftsListedForLendingRef.current.has(Number(obj.tokenID)));
               });
         });
 
