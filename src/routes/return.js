@@ -13,6 +13,7 @@ function mapKey(token) {
 }
 
 function ReturnPage() {
+    const returnedNFTsRef = useRef(new Set());
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
     const [rentedNFTs, setRentedNFTs] = useState([]);
     const [returnModalState, setReturnModalState] = useState({ isShown: false });
@@ -41,7 +42,9 @@ function ReturnPage() {
 
     const fetchRentedNFTs = useCallback(async () => {
         const contract = KasuContract();
-        const fetchedRentedNFTsWithoutMetadata = await contract.viewRentedListings();
+        const fetchedRentedNFTsWithoutMetadata = (await contract.viewRentedListings()).filter(listing => {
+            return !returnedNFTsRef.current.has(`${listing.tokenId}-${listing.tokenAddress}`);
+        });
         const partialMetadata = fetchedRentedNFTsWithoutMetadata.map(listing => ({
             address: listing.tokenAddress,
             tokenID: listing.tokenId.toString(),
@@ -108,9 +111,10 @@ function ReturnPage() {
             });
     }, [fetchRentedNFTs]);
 
-    const closeReturnModal = useCallback((didReturn) => {
+    const closeReturnModal = useCallback((didReturn, listing) => {
         setReturnModalState({ isShown: false });
         if (didReturn) {
+            returnedNFTsRef.current.add(`${listing.tokenId}-${listing.tokenAddress}`);
             fetchRentedNFTs();
         }
     }, [setReturnModalState, fetchRentedNFTs]);
