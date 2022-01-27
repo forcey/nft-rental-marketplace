@@ -19,6 +19,7 @@ function CreateListingModal(props: Props) {
     const [validationOk, setValidationOk] = useState(false);
     const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
     const [transactionSubmitted, setTransactionSubmitted] = useState(false);
+    const [error, setError] = useState(null);
 
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
@@ -39,48 +40,52 @@ function CreateListingModal(props: Props) {
 
     const didClickListNFTButton = () => {
         setTransactionSubmitted(true);
-        const contract = KasuContract();
-        try {
+        setError(null);
+
+        const onListNFTCompletion = new Promise<void>(resolve => {
+            const contract = KasuContract();
+            const filter = { address: contract.address,
+                             topics: [ethers.utils.id("ListNFT(uint256)")] };
+
             contract.listNFT(
                 props.tokenID,
                 props.tokenAddress,
                 formValues.rentalDuration,
                 formValues.interestRate,
-                ethers.utils.parseEther(formValues.collateralRequired)
-            ).then(() => {
-                    // show toast when transaction is pending
-                    toast.promise(
-                        onListNFTCompletion(),
-                        {
-                          pending: 'Listing NFT is pending',
-                          success: 'Listing Your NFT... 👌',
-                          error: 'Error listing NFT'
-                        },
-                        {
-                            position: toast.POSITION.TOP_CENTER,
-                            autoClose: 15000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                        }
-                    )
-                }) ;
-        } catch (error: any) {
-            console.log("error", error.toString());
-            return;
-        }
-    };
+                ethers.utils.parseEther(formValues.collateralRequired))
+                .then((response: any) => {
+                    const loginServiceProvider = getLoginServiceProvider();
 
-    const onListNFTCompletion = () => new Promise((resolve) => {
-        const loginServiceProvider = getLoginServiceProvider();
-        resolve(
-            loginServiceProvider.on("block", () => {
-                props.onShouldClose(true);
-            })
+                    loginServiceProvider.on(filter, event => {
+                        console.log("event", event);
+                        resolve();
+                        props.onShouldClose(true);
+                    });
+                    // props.onShouldClose(true);
+                }).catch((error: any) => {
+                    setTransactionSubmitted(false);
+                    setError(error.data.message);
+                });
+        });
+
+        toast.promise(
+            onListNFTCompletion,
+            {
+                pending: 'Listing NFT is pending',
+                success: 'Listing Your NFT... 👌',
+                error: 'Error listing NFT'
+            },
+            {
+                position: toast.POSITION.TOP_CENTER,
+                autoClose: false,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            }
         );
-    });
+    };
 
     const didClickCloseButton = () => {
         props.onShouldClose(false);
