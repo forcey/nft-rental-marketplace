@@ -12,7 +12,7 @@ interface Props {
     tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean, nftTokenListed: ethers.BigNumber) => void,
+    onShouldClose: (didListNFT: boolean, tokenIdListed: ethers.BigNumber) => void,
 }
 
 function CreateListingModal(props: Props) {
@@ -56,10 +56,10 @@ function CreateListingModal(props: Props) {
                     const loginServiceProvider = getLoginServiceProvider();
 
                     loginServiceProvider.on(filter, event => {
+                        console.log("listening to event", event);
                         resolve();
                         props.onShouldClose(true, props.tokenID);
                     });
-                    props.onShouldClose(true, props.tokenID);
                 }).catch((error: any) => {
                     setTransactionSubmitted(false);
                     setError(error.data.message);
@@ -75,7 +75,7 @@ function CreateListingModal(props: Props) {
             },
             {
                 position: toast.POSITION.TOP_CENTER,
-                autoClose: 15000,
+                autoClose: 25000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
