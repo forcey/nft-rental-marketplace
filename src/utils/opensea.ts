@@ -7,7 +7,7 @@ const chainToDomain = new Map<number, string>([
     [4, "rinkeby-api.opensea.io"],
 ]);
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 30;
 
 function getDomain(): string {
     const chainId = LoginService.getInstance().chainId;
