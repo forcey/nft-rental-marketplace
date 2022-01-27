@@ -10,7 +10,7 @@ import LoginService from '../utils/LoginService';
 interface Props {
     listing: Listing,
     isShown: boolean,
-    onShouldClose: (didReturn: boolean) => void,
+    onShouldClose: (didReturn: boolean, listingReturned: Listing) => void,
 }
 
 type paymentBreakdown = {
@@ -51,9 +51,9 @@ function ReturnModal(props: Props) {
                 .then((response: any) => {
                     LoginService.getInstance().provider.on(filter, event => {
                         resolve();
-                        props.onShouldClose(true);
+                        props.onShouldClose(true, props.listing);
                     });
-                    props.onShouldClose(true);
+                    props.onShouldClose(true, props.listing);
                 }).catch((error: any) => {
                     console.log(error);
                     setTransactionSubmitted(false);
@@ -83,7 +83,7 @@ function ReturnModal(props: Props) {
     const shouldDisableReturnButton = transactionSubmitted || approvalState !== ApprovalState.APPROVED;
 
     const didClickCloseButton = () => {
-        props.onShouldClose(false);
+        props.onShouldClose(false, props.listing);
     };
 
     let errorMessage;
