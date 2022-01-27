@@ -3,11 +3,13 @@ import { Alert, Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
+import { toast } from "react-toastify";
 
 interface Props {
     listing: Listing,
     isShown: boolean,
     onShouldClose: (didBorrow: boolean) => void,
+    onTransactionConfirmed: () => void,
 }
 
 function calculatePayment(listing: Listing) {
@@ -29,10 +31,17 @@ function BorrowModal(props: Props) {
         contract.borrow(
             props.listing.id,
             { value: paymentAmount }
-        ).then((response: any) => {
-            console.log("response", response);
+        ).then((tx: any) => {
             // ... close the dialog and wait for transaction to be mined into a block ...
             props.onShouldClose(true);
+            toast.promise(
+                tx.wait(),
+                {
+                    pending: 'Borrowing NFT...',
+                    success: 'NFT Borrowed 👌',
+                    error: 'Error Borrowing NFT'
+                },
+            ).then(() => props.onTransactionConfirmed());
         }).catch((error: any) => {
             console.log(error);
             setShouldDisableBorrowButton(false);

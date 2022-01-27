@@ -133,6 +133,10 @@ function BrowsePage() {
         }
     }, [setBorrowModalState, fetchListings]);
 
+    const removeListing = useCallback((listingID) => {
+        setListings(listings.filter(listing => !listing.id.eq(listingID)));
+    }, [listings]);
+
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
     }
@@ -148,7 +152,8 @@ function BrowsePage() {
                 <BorrowModal
                     isShown={borrowModalState.isShown}
                     listing={borrowModalState.listing}
-                    onShouldClose={closeBorrowModal} />}
+                    onShouldClose={closeBorrowModal}
+                    onTransactionConfirmed={() => removeListing(borrowModalState.listing.id)} />}
         </Container>)
     } else {
         return (<Alert variant="primary">No listings available</Alert>);
