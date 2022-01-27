@@ -19,7 +19,6 @@ function CreateListingModal(props: Props) {
     const [validationOk, setValidationOk] = useState(false);
     const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
     const [transactionSubmitted, setTransactionSubmitted] = useState(false);
-    const [error, setError] = useState(null);
 
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
@@ -40,7 +39,6 @@ function CreateListingModal(props: Props) {
 
     const didClickListNFTButton = () => {
         setTransactionSubmitted(true);
-        setError(null);
 
         const onListNFTCompletion = new Promise<void>(resolve => {
             const contract = KasuContract();
@@ -56,13 +54,12 @@ function CreateListingModal(props: Props) {
                     const loginServiceProvider = getLoginServiceProvider();
 
                     loginServiceProvider.on(filter, event => {
-                        console.log("listening to event", event);
                         resolve();
                         props.onShouldClose(true, props.tokenID);
                     });
                 }).catch((error: any) => {
+                    console.log("error", error);
                     setTransactionSubmitted(false);
-                    setError(error.data.message);
                 });
         });
 

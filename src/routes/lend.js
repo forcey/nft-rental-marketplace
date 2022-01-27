@@ -200,7 +200,7 @@ function LendPage() {
         };
     }, [loadOwnedNFTs, onLogin]);
 
-    const closeListingModal = useCallback((didListNFT) => {
+    const closeListingModal = useCallback((didListNFT, tokenID) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
         if (didListNFT) {
             fetchAvailableListings();
