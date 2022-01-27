@@ -4,6 +4,8 @@ import { useCallback, useState } from 'react';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
 import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
+import { ToastContainer, toast } from "react-toastify";
+import LoginService from '../utils/LoginService';
 
 interface Props {
     listing: Listing,
@@ -41,18 +43,37 @@ function ReturnModal(props: Props) {
     const didClickReturnButton = () => {
         setTransactionSubmitted(true);
         setError(null);
-
-        const contract = KasuContract();
-        contract.returnNFT(props.listing.id)
-            .then((response: any) => {
-                console.log("response", response);
-                // ... close the dialog and wait for transaction to be mined into a block ...
-                props.onShouldClose(true);
-            }).catch((error: any) => {
-                console.log(error);
-                setTransactionSubmitted(false);
-                setError(error.data.message);
-            });
+        const toastPromise = new Promise<void>(resolve => {
+            const contract = KasuContract();
+            const filter = { address: contract.address,
+                             topics: [ethers.utils.id("Returned(uint256)")] };
+            contract.returnNFT(props.listing.id)
+                .then((response: any) => {
+                    LoginService.getInstance().provider.on(filter, event => {
+                        resolve();
+                        props.onShouldClose(true);
+                    });
+                    props.onShouldClose(true);
+                }).catch((error: any) => {
+                    console.log(error);
+                    setTransactionSubmitted(false);
+                    setError(error.data.message);
+                });
+        });
+        toast.promise(
+            toastPromise,
+            {
+              pending: 'Returning NFT...',
+              success: 'NFT Returned 👌',
+              error: 'Error returning NFT'
+            },
+            {
+                position: toast.POSITION.TOP_CENTER,
+                autoClose: 15000,
+                hideProgressBar: false,
+                closeOnClick: false,
+            }
+        );
     };
 
     const onApprovalStateChange = useCallback((state: ApprovalState) => {
@@ -90,6 +111,17 @@ function ReturnModal(props: Props) {
                     <Button variant="success" onClick={didClickReturnButton} disabled={shouldDisableReturnButton}>Return</Button>
                 </Modal.Footer>
             </Modal.Dialog>
+            <ToastContainer
+                position={toast.POSITION.TOP_CENTER}
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </Modal>
     );
 }

@@ -13,6 +13,7 @@ contract Kasu is KasuStorage, KasuMath {
     // Events
     event ListNFT(uint256 tokenId);
     event TerminateRental(uint256 listingId);
+    event Returned(uint256 listingId);
 
     function getListingCount() public view returns (uint) {
         return _getListingCount();
@@ -158,6 +159,7 @@ contract Kasu is KasuStorage, KasuMath {
         uint256 interestAmount = KasuMath._calculateInterest(_getListingById(listingId), elapsedRentalTime);
         payable(listing.lenderAddress).call{value: interestAmount};
         _deleteListing(listingId);
+        emit Returned(listingId);
     }
 
     // helper functions
