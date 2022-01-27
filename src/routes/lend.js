@@ -10,6 +10,11 @@ import { FakeNFTContract, KasuContract } from '../utils/abiManager';
 import { FetchOwnedNFTs } from "../utils/opensea";
 import { toast } from 'react-toastify';
 
+function mapKey(token) {
+    // Normalize the address for case-sensitive map lookup.
+    return `${ethers.utils.getAddress(token.address)}/${token.tokenID}`;
+}
+
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
@@ -185,7 +190,7 @@ function LendPage() {
 
     const removeLentOutListing = useCallback((tokenAddress, tokenIDString) => {
         const tokenID = ethers.BigNumber.from(tokenIDString);
-        setNFTsInUserWallet(nftList => nftList.filter(obj => obj.address !== tokenAddress || !obj.tokenID.eq(tokenID)));
+        setNFTsInUserWallet(nftList => nftList.filter(nft => nft.address !== tokenAddress || !nft.tokenID.eq(tokenID)));
         fetchOwnedOngoingListingsAndRentals();
     }, [fetchOwnedOngoingListingsAndRentals]);
 
@@ -197,10 +202,14 @@ function LendPage() {
         return (<Alert variant="danger">{error}</Alert>);
     }
 
+    // Remove listed NFTs from the list of owned NFTs.
+    const listedNFTs = new Set(nftsListedForLending.map(mapKey));
+    const nftsAvailableToList = nftsInUserWallet.filter(nft => !listedNFTs.has(mapKey(nft)));
+
     return (
         <Container>
             <h4>Available</h4>
-            <NFTCardGrid data={nftsInUserWallet} />
+            <NFTCardGrid data={nftsAvailableToList} />
             <h4>Listed for Lending</h4>
             <NFTCardGrid data={nftsListedForLending} />
             <h4>Lent Out</h4>
