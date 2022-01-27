@@ -12,7 +12,7 @@ interface Props {
     tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean) => void,
+    onShouldClose: (didListNFT: boolean, nftTokenListed: ethers.BigNumber) => void,
 }
 
 function CreateListingModal(props: Props) {
@@ -46,7 +46,6 @@ function CreateListingModal(props: Props) {
             const contract = KasuContract();
             const filter = { address: contract.address,
                              topics: [ethers.utils.id("ListNFT(uint256)")] };
-
             contract.listNFT(
                 props.tokenID,
                 props.tokenAddress,
@@ -57,11 +56,10 @@ function CreateListingModal(props: Props) {
                     const loginServiceProvider = getLoginServiceProvider();
 
                     loginServiceProvider.on(filter, event => {
-                        console.log("event", event);
                         resolve();
-                        props.onShouldClose(true);
+                        props.onShouldClose(true, props.tokenID);
                     });
-                    // props.onShouldClose(true);
+                    props.onShouldClose(true, props.tokenID);
                 }).catch((error: any) => {
                     setTransactionSubmitted(false);
                     setError(error.data.message);
@@ -77,7 +75,7 @@ function CreateListingModal(props: Props) {
             },
             {
                 position: toast.POSITION.TOP_CENTER,
-                autoClose: false,
+                autoClose: 15000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
@@ -88,7 +86,7 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickCloseButton = () => {
-        props.onShouldClose(false);
+        props.onShouldClose(false, props.tokenID);
     };
 
     const validateCollateral = (event: React.ChangeEvent<HTMLInputElement>) => {
