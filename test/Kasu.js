@@ -278,4 +278,33 @@ describe("Kasu", function () {
       ).to.be.an('array').to.have.lengthOf(0);
     });
   });
+  
+  describe("Rental returns", function () {
+
+    beforeEach("Setup contract state", async () => {
+      await fakeNFT.connect(owner).mint(1);
+      await contract.connect(owner).listNFT(1, fakeNFT.address, MAX_RENT_DURATION, DAILY_INTEREST_RATE, ethers.utils.parseEther( "10"));
+      await contract.connect(account1);
+      await fakeNFT.connect(owner).setApprovalForAll(contract.address, true);
+      const tx = await contract.connect(account1).borrow(1, { value: ethers.utils.parseEther("10.5") });
+      listings = await contract.connect(account1).viewRentedListings();
+      expect(
+        listings
+      ).to.be.an('array').to.have.lengthOf(1);
+      
+      await fakeNFT.connect(account1).setApprovalForAll(contract.address, true);
+    });
+
+    it("should be able to return a rental", async function() {
+      await expect(contract.connect(account1).returnNFT(listings[0].id))
+      .to.emit(contract, "Returned").withArgs(1);
+    });
+
+    it("shouldn't be able to return rentals twice", async function(){
+      await expect(contract.connect(account1).returnNFT(listings[0].id))
+      .to.emit(contract, "Returned").withArgs(1);
+      await expect(contract.connect(account1).returnNFT(listings[0].id))
+      .to.be.revertedWith("listingID was not found");
+    })
+  });
 });
