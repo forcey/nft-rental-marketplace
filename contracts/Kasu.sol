@@ -12,6 +12,7 @@ contract Kasu is KasuStorage, KasuMath {
 
     // Events
     event ListNFT(uint256 tokenId);
+    event UnlistNFT(uint256 listingId);
     event TerminateRental(uint256 listingId);
     event Returned(uint256 listingId);
 
@@ -99,10 +100,14 @@ contract Kasu is KasuStorage, KasuMath {
         emit ListNFT(listing.tokenId);
     }
 
-    // [Feature 2] Lender's dashboard
+    /// [Feature 2] Lender's dashboard
     // Lender can unlist NFT and this listing is removed from the map/storage
-    function unListNFT(uint256 listingId) public {
+    function unlistNFT(uint256 listingId) public {
+        require(_listingExists(listingId), "listing does not exist");
+        
+        _deleteListing(listingId);
 
+        emit UnlistNFT(listingId);
     }
 
     // [Feature 2] Lender's dashboard
