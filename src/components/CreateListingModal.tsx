@@ -1,6 +1,6 @@
 import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef, useCallback } from 'react';
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 import { KasuContract } from '../utils/abiManager';
 import { ethers } from 'ethers';
@@ -12,7 +12,8 @@ interface Props {
     tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean, tokenId: ethers.BigNumber, tokenAddress: string) => void,
+    onShouldClose: (didListNFT: boolean) => void,
+    onTransactionConfirmed: () => void,
 }
 
 function CreateListingModal(props: Props) {
@@ -38,45 +39,34 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
+        setTransactionSubmitted(true);
+
         const contract = KasuContract();
-
-        const onListNFTCompletion = (async () => {
-            try {
-                setTransactionSubmitted(true);
-                const tx = await contract.listNFT(
-                            props.tokenID,
-                            props.tokenAddress,
-                            formValues.rentalDuration,
-                            formValues.interestRate,
-                            ethers.utils.parseEther(formValues.collateralRequired));
-                await tx.wait();
-                props.onShouldClose(true, props.tokenID, props.tokenAddress);
-            } catch (e: any) {
-                setTransactionSubmitted(false);
-            }
-        })();
-
-        toast.promise(
-            onListNFTCompletion,
-            {
-                pending: 'Listing NFT is pending',
-                success: 'Listing Your NFT... 👌',
-                error: 'Error listing NFT'
-            },
-            {
-                position: toast.POSITION.TOP_CENTER,
-                autoClose: 25000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            }
-        );
+        contract.listNFT(
+            props.tokenID,
+            props.tokenAddress,
+            formValues.rentalDuration,
+            formValues.interestRate,
+            ethers.utils.parseEther(formValues.collateralRequired)
+        ).then((tx: any) => {
+            // ... close the dialog and wait for transaction to be mined into a block ...
+            props.onShouldClose(true);
+            toast.promise(
+                tx.wait(),
+                {
+                    pending: 'Listing Your NFT...',
+                    success: 'NFT is listed 👌',
+                    error: 'Error listing NFT'
+                },
+            ).then(() => props.onTransactionConfirmed());
+        }).catch((error: any) => {
+            console.log("error", error);
+            setTransactionSubmitted(false);
+        });
     };
 
     const didClickCloseButton = () => {
-        props.onShouldClose(false, props.tokenID, props.tokenAddress);
+        props.onShouldClose(false);
     };
 
     const validateCollateral = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,17 +162,6 @@ function CreateListingModal(props: Props) {
                     <Button variant="success" onClick={didClickListNFTButton} disabled={shouldDisableListButton}>List</Button>
                 </Modal.Footer>
             </Modal.Dialog>
-            <ToastContainer
-                position={toast.POSITION.TOP_CENTER}
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
         </Modal>
     );
 }

@@ -13,7 +13,6 @@ function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
     const nftsTerminatedRentalsRef = useRef(new Set());
-    const nftsListedForLendingRef = useRef(new Set());
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
@@ -73,17 +72,6 @@ function LendPage() {
             loadFakeNFT();
         }
     }, [loadOpensea, loadFakeNFT]);
-
-    const fetchAvailableListings = useCallback((tokenID, tokenAddress) => {
-        nftsListedForLendingRef.current.add(`${tokenID}-${tokenAddress}`);
-
-        setNFTsInUserWallet(nfts => {
-            return nfts.filter(obj => {
-                return !nftsListedForLendingRef.current.has(`${obj.tokenID}-${obj.address}`);
-            }
-            );
-          });
-    }, [setNFTsInUserWallet]);
 
     // eslint-disable-next-line
     const unlistNFT = useCallback((listingID) => {
@@ -189,13 +177,15 @@ function LendPage() {
         };
     }, [loadOwnedNFTs, onLogin]);
 
-    const closeListingModal = useCallback((didListNFT, tokenID, tokenAddress) => {
+    const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
-        if (didListNFT) {
-            fetchAvailableListings(tokenID, tokenAddress);
-            fetchOwnedOngoingListingsAndRentals();
-        }
-    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals, fetchAvailableListings]);
+    }, [setListingModalState]);
+
+    const removeLentOutListing = useCallback((tokenAddress, tokenIDString) => {
+        const tokenID = ethers.BigNumber.from(tokenIDString);
+        setNFTsInUserWallet(nftList => nftList.filter(obj => obj.address !== tokenAddress || !obj.tokenID.eq(tokenID)));
+        fetchOwnedOngoingListingsAndRentals();
+    }, [fetchOwnedOngoingListingsAndRentals]);
 
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
@@ -218,7 +208,8 @@ function LendPage() {
                     isShown={listingModalState.isShown}
                     tokenID={listingModalState.tokenID}
                     tokenAddress={listingModalState.tokenAddress}
-                    onShouldClose={closeListingModal} />}
+                    onShouldClose={closeListingModal}
+                    onTransactionConfirmed={() => removeLentOutListing(listingModalState.tokenAddress, listingModalState.tokenID)} />}
         </Container>
     )
 }
