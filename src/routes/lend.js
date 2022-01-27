@@ -203,7 +203,7 @@ function LendPage() {
             setNFTsListedForLending(nfts => {
                 return nfts.filter(obj => !obj.listingID.eq(listingID))});
         }
-    }, [setUnlistingModalState, fetchOwnedOngoingListingsAndRentals]);
+    }, [setUnlistingModalState]);
 
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
