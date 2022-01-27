@@ -154,7 +154,7 @@ contract Kasu is KasuStorage, KasuMath {
     // After borrower return NFT, collateral is sent from smart contract to borrower's address
     function returnNFT(uint256 listingId) public {
         Listing memory listing = _getListingById(listingId);
-        require(listing.id != 0, "Invalid listingId");
+        require(listing.id != 0, "listingID was not found");
         IERC721(listing.tokenAddress).safeTransferFrom(listing.rental.borrowerAddress,
                                                        listing.lenderAddress,
                                                        listing.tokenId);
