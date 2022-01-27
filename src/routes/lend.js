@@ -98,22 +98,15 @@ function LendPage() {
         const contract = KasuContract();
         contract.terminateRental(listingID)
           .then(() => {
+                nftsTerminatedRentalsRef.current.add(listingID.toNumber());
               setNFTsLentOut(nfts => {
-                return nfts.filter(obj => obj.listingID !== listingID);
+                    return nfts.filter(obj => !nftsTerminatedRentalsRef.current.has(obj.listingID.toNumber()));
               });
           });
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
         const contract = KasuContract();
-        const filter = { address: contract.address,
-                         topics: [ethers.utils.id("TerminateRental(uint256)")] };
-        LoginService.getInstance().provider.on(filter, event => {
-            nftsTerminatedRentalsRef.current.add(Number(event.data));
-            setNFTsLentOut(nfts => {
-                return nfts.filter(obj => !nftsTerminatedRentalsRef.current.has(obj.listingID));
-              });
-        });
         contract.viewOwnedOngoingListingsAndRentals()
           .then((fetchedListingsAndRentals) => {
             const ongoingListings = fetchedListingsAndRentals
