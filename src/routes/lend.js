@@ -7,7 +7,7 @@ import CreateListingModal from '../components/CreateListingModal';
 import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
 import { FakeNFTContract, KasuContract } from '../utils/abiManager';
-import { FetchOwnedNFTs } from "../utils/opensea";
+import { FetchOwnedNFTs, FetchMetadata } from "../utils/opensea";
 import { toast } from 'react-toastify';
 
 function mapKey(token) {
@@ -96,58 +96,105 @@ function LendPage() {
         });
     }, [setNFTsLentOut]);
 
-    const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
+    const fetchOwnedOngoingListingsAndRentals = useCallback(async () => {
         const contract = KasuContract();
-        contract.viewOwnedOngoingListingsAndRentals()
-          .then((fetchedListingsAndRentals) => {
-            const ongoingListings = fetchedListingsAndRentals
-                                .filter(obj => isRentalAvailable(obj))
-                                .map(obj => {
-                                    return {
-                                        address: obj.tokenAddress,
-                                        tokenID: obj.tokenId,
-                                        listingID: obj.id,
-                                        collateral: ethers.utils.formatEther(obj.collateralRequired),
-                                        rentalDuration: obj.duration,
-                                        interestRate: obj.dailyInterestRate,
-                                        actionButtonStyle: 'UNLIST',
-                                        // TODO: Need to get image URI from OpenSea
-                                        imageURI: 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22232%22%20height%3D%22131%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20232%20131%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e704e3109%20text%20%7B%20fill%3A%2380b480%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e704e3109%22%3E%3Crect%20width%3D%22232%22%20height%3D%22131%22%20fill%3D%22%23a1e1a1%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2284.85546875%22%20y%3D%2270.9%22%3E232x131%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E',
-                                    };
-                                });
-            const ongoingRentals = fetchedListingsAndRentals
-                                    .filter(obj => !isRentalAvailable(obj))
-                                    .map(obj => {
-                                        const dateOptions = { hour: "numeric", minute: "numeric" };
-                                        const rentalDueDate = new Date((obj.rental.rentedAt
-                                                                            .add(obj.duration * 86400)
-                                                                            .mul(1000))
-                                                                        .toNumber())
-                                                                    .toLocaleDateString("en-US", dateOptions);
-                                        const rentedAtDate = new Date((obj.rental.rentedAt
-                                                                            .mul(1000))
-                                                                        .toNumber())
-                                                                    .toLocaleDateString("en-US", dateOptions);
-                                        const isTerminatable = ethers.BigNumber.from(Date.now()).div(1000)
-                                                                .gte(obj.rental.rentedAt.add(obj.duration * 86400));
-                                        return {
-                                            address: obj.tokenAddress,
-                                            tokenID: obj.tokenId,
-                                            listingID: obj.id,
-                                            collateral: ethers.utils.formatEther(obj.collateralRequired),
-                                            rentalDuration: obj.duration,
-                                            interestRate: obj.dailyInterestRate,
-                                            actionButtonStyle: isTerminatable ? 'TERMINATE_RENTAL' : null,
-                                            didClickActionButton: isTerminatable ? terminateRental : null,
-                                            rentalDueDate: rentalDueDate,
-                                            rentedAtDate: rentedAtDate,
-                                            // TODO: Need to get image URI from OpenSea
-                                            imageURI: 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22232%22%20height%3D%22131%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20232%20131%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e704e3109%20text%20%7B%20fill%3A%2380b480%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e704e3109%22%3E%3Crect%20width%3D%22232%22%20height%3D%22131%22%20fill%3D%22%23a1e1a1%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2284.85546875%22%20y%3D%2270.9%22%3E232x131%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E',
-                                        };
-                                    });
-            setNFTsListedForLending(ongoingListings);
-            setNFTsLentOut(ongoingRentals);
-        });
+
+        const fetchedListingsAndRentalsWithoutMetadata = (await contract.viewOwnedOngoingListingsAndRentals());
+        const ongoingListings = fetchedListingsAndRentalsWithoutMetadata.filter(obj => isRentalAvailable(obj));
+        const ongoingRentals = fetchedListingsAndRentalsWithoutMetadata.filter(obj => !isRentalAvailable(obj));
+        // console.log("ongoing listings", ongoingListings);
+        // console.log("ongoing rentals", ongoingRentals);
+
+        // Won't fetch metadata on local network.
+        if (LoginService.getInstance().chainName === "Unknown") {
+            const fakeListedNFTs = ongoingListings.map(obj => {
+                return {
+                    address: obj.tokenAddress,
+                    tokenID: obj.tokenId,
+                    listingID: obj.id,
+                    collateral: ethers.utils.formatEther(obj.collateralRequired),
+                    rentalDuration: obj.duration,
+                    interestRate: obj.dailyInterestRate,
+                    actionButtonStyle: 'UNLIST',
+                    imageURI: 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22232%22%20height%3D%22131%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20232%20131%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e704e3109%20text%20%7B%20fill%3A%2380b480%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e704e3109%22%3E%3Crect%20width%3D%22232%22%20height%3D%22131%22%20fill%3D%22%23a1e1a1%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2284.85546875%22%20y%3D%2270.9%22%3E232x131%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E',
+                };
+            });
+
+            const fakeLentOutNFTs = ongoingRentals.map(obj => {
+                const dateOptions = { hour: "numeric", minute: "numeric" };
+                const rentalDueDate = new Date((obj.rental.rentedAt
+                                                    .add(obj.duration * 86400)
+                                                    .mul(1000))
+                                                .toNumber())
+                                            .toLocaleDateString("en-US", dateOptions);
+                const rentedAtDate = new Date((obj.rental.rentedAt
+                                                    .mul(1000))
+                                                .toNumber())
+                                            .toLocaleDateString("en-US", dateOptions);
+                const isTerminatable = ethers.BigNumber.from(Date.now()).div(1000)
+                                        .gte(obj.rental.rentedAt.add(obj.duration * 86400));
+                return {
+                    address: obj.tokenAddress,
+                    tokenID: obj.tokenId,
+                    listingID: obj.id,
+                    collateral: ethers.utils.formatEther(obj.collateralRequired),
+                    rentalDuration: obj.duration,
+                    interestRate: obj.dailyInterestRate,
+                    actionButtonStyle: isTerminatable ? 'TERMINATE_RENTAL' : null,
+                    didClickActionButton: isTerminatable ? terminateRental : null,
+                    rentalDueDate: rentalDueDate,
+                    rentedAtDate: rentedAtDate,
+                    imageURI: 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22232%22%20height%3D%22131%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20232%20131%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17e704e3109%20text%20%7B%20fill%3A%2380b480%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17e704e3109%22%3E%3Crect%20width%3D%22232%22%20height%3D%22131%22%20fill%3D%22%23a1e1a1%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2284.85546875%22%20y%3D%2270.9%22%3E232x131%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E',
+                };
+            });
+
+            console.log("fakeListedNFTs", fakeListedNFTs);
+            console.log("fakeLentOutNFTs", fakeLentOutNFTs);
+            setNFTsListedForLending(fakeListedNFTs);
+            setNFTsLentOut(fakeLentOutNFTs);
+            return;
+        }
+
+
+        const ongoingListingsMetadata = ongoingListings.map(listing => ({
+            address: listing.tokenAddress,
+            tokenID: listing.tokenId.toString(),
+        }));
+
+        FetchMetadata(ongoingListingsMetadata)
+            .then(response => {
+                const kvPairs = response.map(metadata => [mapKey(metadata), metadata]);
+                const metadata = new Map(kvPairs);
+                console.log("metadata from opensea", metadata);
+                
+                // const ongoingListingsWithMetadata = ongoingListings.map(listing => {
+                //     const card = {
+                //         address: listing.tokenAddress,
+                //         tokenID: listing.tokenId,
+                //         listingID: listing.id,
+                //         collateral: ethers.utils.formatEther(listing.collateralRequired),
+                //         rentalDuration: listing.duration,
+                //         interestRate: listing.dailyInterestRate,
+                //         actionButtonStyle: 'RETURN',
+                //         didClickActionButton: () => returnNFT(listing),
+                //     };
+                //     const tokenMetadata = metadata.get(mapKey(card));
+                //     if (tokenMetadata) {
+                //         card.name = tokenMetadata.name;
+                //         card.contractName = tokenMetadata.contractName;
+                //         card.imageURI = tokenMetadata.imageURI;
+                //     }
+                //     return card;
+                // });
+                // setRentedNFTs(rentedNFTsWithMetadata);
+            })
+            .catch(error => console.log(error));
+
+        const ongoingRentalsMetadata = ongoingRentals.map(listing => ({
+            address: listing.tokenAddress,
+            tokenID: listing.tokenId.toString(),
+        }));
+
     }, [setNFTsListedForLending, setNFTsLentOut, terminateRental]);
 
     const loadOwnedNFTs = useCallback(() => {
