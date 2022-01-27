@@ -113,11 +113,11 @@ function ReturnPage() {
 
     const closeReturnModal = useCallback((didReturn, listing) => {
         setReturnModalState({ isShown: false });
-        if (didReturn) {
-            returnedNFTsRef.current.add(`${listing.tokenId}-${listing.tokenAddress}`);
-            fetchRentedNFTs();
-        }
-    }, [setReturnModalState, fetchRentedNFTs]);
+    }, [setReturnModalState]);
+
+    const removeNFTFromRentedListings = useCallback((listingID) => {
+        setRentedNFTs(rentedNFTs.filter(nft => !nft.listingID.eq(listingID)));
+    }, [rentedNFTs]);
 
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
@@ -129,7 +129,9 @@ function ReturnPage() {
             <ReturnModal
                 isShown={returnModalState.isShown}
                 listing={returnModalState.listing}
-                onShouldClose={closeReturnModal} />}
+                onShouldClose={closeReturnModal}
+                onTransactionConfirmed={() => removeNFTFromRentedListings(returnModalState.listing.id)}
+            />}
     </Container>);
 }
 

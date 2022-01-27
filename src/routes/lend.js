@@ -8,12 +8,16 @@ import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
 import { FakeNFTContract, KasuContract } from '../utils/abiManager';
 import { FetchOwnedNFTs } from "../utils/opensea";
+import { toast } from 'react-toastify';
+
+function mapKey(token) {
+    // Normalize the address for case-sensitive map lookup.
+    return `${ethers.utils.getAddress(token.address)}/${token.tokenID}`;
+}
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
-    const nftsTerminatedRentalsRef = useRef(new Set());
-    const nftsListedForLendingRef = useRef(new Set());
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
@@ -74,17 +78,6 @@ function LendPage() {
         }
     }, [loadOpensea, loadFakeNFT]);
 
-    const fetchAvailableListings = useCallback((tokenID, tokenAddress) => {
-        nftsListedForLendingRef.current.add(`${tokenID}-${tokenAddress}`);
-
-        setNFTsInUserWallet(nfts => {
-            return nfts.filter(obj => {
-                return !nftsListedForLendingRef.current.has(`${obj.tokenID}-${obj.address}`);
-            }
-            );
-          });
-    }, [setNFTsInUserWallet]);
-
     // eslint-disable-next-line
     const unlistNFT = useCallback((listingID) => {
         // TODO: Implement unlist smart contract integration logic
@@ -92,13 +85,15 @@ function LendPage() {
 
     const terminateRental = useCallback((listingID) => {
         const contract = KasuContract();
-        contract.terminateRental(listingID)
-          .then(() => {
-                nftsTerminatedRentalsRef.current.add(listingID.toNumber());
-              setNFTsLentOut(nfts => {
-                    return nfts.filter(obj => !nftsTerminatedRentalsRef.current.has(obj.listingID.toNumber()));
-              });
-          });
+        contract.terminateRental(listingID).then(tx => {
+            toast.promise(tx.wait(), {
+                pending: 'Terminating Rental...',
+                success: 'Rental terminated 💀',
+                error: 'Error terminating rental'
+            }).then(() => setNFTsLentOut(nfts => {
+                return nfts.filter(obj => !obj.listingID.eq(listingID));
+            }));
+        });
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
@@ -189,13 +184,15 @@ function LendPage() {
         };
     }, [loadOwnedNFTs, onLogin]);
 
-    const closeListingModal = useCallback((didListNFT, tokenID, tokenAddress) => {
+    const closeListingModal = useCallback((didListNFT) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
-        if (didListNFT) {
-            fetchAvailableListings(tokenID, tokenAddress);
-            fetchOwnedOngoingListingsAndRentals();
-        }
-    }, [setListingModalState, fetchOwnedOngoingListingsAndRentals, fetchAvailableListings]);
+    }, [setListingModalState]);
+
+    const removeLentOutListing = useCallback((tokenAddress, tokenIDString) => {
+        const tokenID = ethers.BigNumber.from(tokenIDString);
+        setNFTsInUserWallet(nftList => nftList.filter(nft => nft.address !== tokenAddress || !nft.tokenID.eq(tokenID)));
+        fetchOwnedOngoingListingsAndRentals();
+    }, [fetchOwnedOngoingListingsAndRentals]);
 
     if (!isLoggedIn) {
         return (<Alert variant="warning">Connect Your Wallet</Alert>);
@@ -205,10 +202,14 @@ function LendPage() {
         return (<Alert variant="danger">{error}</Alert>);
     }
 
+    // Remove listed/lent out NFTs from the list of owned NFTs.
+    const listedNFTs = new Set(nftsListedForLending.map(mapKey).concat(nftsLentOut.map(mapKey)));
+    const nftsAvailableToList = nftsInUserWallet.filter(nft => !listedNFTs.has(mapKey(nft)));
+
     return (
         <Container>
             <h4>Available</h4>
-            <NFTCardGrid data={nftsInUserWallet} />
+            <NFTCardGrid data={nftsAvailableToList} />
             <h4>Listed for Lending</h4>
             <NFTCardGrid data={nftsListedForLending} />
             <h4>Lent Out</h4>
@@ -218,7 +219,8 @@ function LendPage() {
                     isShown={listingModalState.isShown}
                     tokenID={listingModalState.tokenID}
                     tokenAddress={listingModalState.tokenAddress}
-                    onShouldClose={closeListingModal} />}
+                    onShouldClose={closeListingModal}
+                    onTransactionConfirmed={() => removeLentOutListing(listingModalState.tokenAddress, listingModalState.tokenID)} />}
         </Container>
     )
 }

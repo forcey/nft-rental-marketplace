@@ -1,6 +1,7 @@
 import Login from './components/Login';
 import { NavLink, Outlet } from "react-router-dom";
 import { Container, Navbar, Nav } from 'react-bootstrap';
+import { ToastContainer, toast } from "react-toastify";
 
 function App() {
 
@@ -32,6 +33,17 @@ function App() {
           <Login/>
         </Container>
       </Navbar>
+      <ToastContainer
+        position={toast.POSITION.TOP_RIGHT}
+        autoClose={15000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Outlet/>
     </Container>
   );

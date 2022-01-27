@@ -4,13 +4,13 @@ import { useCallback, useState } from 'react';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
 import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
-import { ToastContainer, toast } from "react-toastify";
-import LoginService from '../utils/LoginService';
+import { toast } from "react-toastify";;
 
 interface Props {
     listing: Listing,
     isShown: boolean,
-    onShouldClose: (didReturn: boolean, listingReturned: Listing) => void,
+    onShouldClose: (didReturn: boolean) => void,
+    onTransactionConfirmed: () => void,
 }
 
 type paymentBreakdown = {
@@ -43,37 +43,25 @@ function ReturnModal(props: Props) {
     const didClickReturnButton = () => {
         setTransactionSubmitted(true);
         setError(null);
-        const toastPromise = new Promise<void>(resolve => {
-            const contract = KasuContract();
-            const filter = { address: contract.address,
-                             topics: [ethers.utils.id("Returned(uint256)")] };
-            contract.returnNFT(props.listing.id)
-                .then((response: any) => {
-                    LoginService.getInstance().provider.on(filter, event => {
-                        resolve();
-                        props.onShouldClose(true, props.listing);
-                    });
-                    props.onShouldClose(true, props.listing);
-                }).catch((error: any) => {
-                    console.log(error);
-                    setTransactionSubmitted(false);
-                    setError(error.data.message);
-                });
-        });
-        toast.promise(
-            toastPromise,
-            {
-              pending: 'Returning NFT...',
-              success: 'NFT Returned 👌',
-              error: 'Error returning NFT'
-            },
-            {
-                position: toast.POSITION.TOP_CENTER,
-                autoClose: 15000,
-                hideProgressBar: false,
-                closeOnClick: false,
-            }
-        );
+
+        const contract = KasuContract();
+        contract.returnNFT(props.listing.id)
+            .then((tx: any) => {
+                // ... close the dialog and wait for transaction to be mined into a block ...
+                props.onShouldClose(true);
+                toast.promise(
+                    tx.wait(),
+                    {
+                        pending: 'Returning NFT...',
+                        success: 'NFT Returned 👌',
+                        error: 'Error returning NFT'
+                    },
+                ).then(() => props.onTransactionConfirmed());
+            }).catch((error: any) => {
+                console.log(error);
+                setTransactionSubmitted(false);
+                setError(error.data.message);
+            });
     };
 
     const onApprovalStateChange = useCallback((state: ApprovalState) => {
@@ -83,7 +71,7 @@ function ReturnModal(props: Props) {
     const shouldDisableReturnButton = transactionSubmitted || approvalState !== ApprovalState.APPROVED;
 
     const didClickCloseButton = () => {
-        props.onShouldClose(false, props.listing);
+        props.onShouldClose(false);
     };
 
     let errorMessage;
@@ -111,17 +99,6 @@ function ReturnModal(props: Props) {
                     <Button variant="success" onClick={didClickReturnButton} disabled={shouldDisableReturnButton}>Return</Button>
                 </Modal.Footer>
             </Modal.Dialog>
-            <ToastContainer
-                position={toast.POSITION.TOP_CENTER}
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
         </Modal>
     );
 }
