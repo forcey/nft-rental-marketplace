@@ -69,9 +69,9 @@ async function main() {
         );
     }
 
-    console.log('Setting next block timestamp forward 7 days so you can terminate rentals')
+    console.log('Setting next block timestamp forward 14 days so you can terminate rentals')
     const latestBlock = await hre.ethers.provider.getBlock("latest");
-    const sevenDaysInTheFuture = latestBlock.timestamp + 86400 * 7;
+    const sevenDaysInTheFuture = latestBlock.timestamp + 86400 * 14;
     await hre.ethers.provider.send('evm_setNextBlockTimestamp', [sevenDaysInTheFuture]);
     await hre.ethers.provider.send('evm_mine');
 }
