@@ -1,6 +1,6 @@
 import { Modal, Button } from 'react-bootstrap';
 import { useState } from 'react';
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 import { KasuContract } from '../utils/abiManager';
 import "react-toastify/dist/ReactToastify.css";
@@ -8,50 +8,40 @@ import "react-toastify/dist/ReactToastify.css";
 interface Props {
     listingID: number,
     isShown: boolean,
-    onShouldClose: (didUnlistNFT: boolean, listingID: number) => void
+    onShouldClose: (didUnlistNFT: boolean, listingID: number) => void,
+    onTransactionConfirmed: () => void,
 }
 
 function UnlistingModal(props: Props) {
-    const [transactionSubmitted, setTransactionSubmitted] = useState(false);
+    const [isUnlistButtonDisabled, setIsUnlistButtonDisabled] = useState(false);
 
-    const didClickUnlistNFTButton = () => {
+    const didClickUnlistNFTButton = async () => {
+        setIsUnlistButtonDisabled(true);
         const contract = KasuContract();
 
-        const onUnlistNFTCompletion = (async () => {
-            try {
-                setTransactionSubmitted(true);
-                const tx = await contract.unlistNFT(props.listingID);
-                await tx.wait();
+        contract.unlistNFT(props.listingID)
+            .then((tx: any) => {
                 props.onShouldClose(true, props.listingID);
-            } catch (e: any) {
-                setTransactionSubmitted(false);
-            }
-        })();
-
-        toast.promise(
-            onUnlistNFTCompletion,
-            {
-                pending: 'Unlist NFT is pending',
-                success: 'Unlisting Your NFT... 👌',
-                error: 'Error Unlisting NFT'
-            },
-            {
-                position: toast.POSITION.TOP_CENTER,
-                autoClose: 15000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            }
-        );
+                toast.promise(
+                    tx.wait(),
+                    {
+                        pending: 'Unlisting Your NFT...',
+                        success: 'NFT Unlisted 👌',
+                        error: 'Error Unlisting NFT'
+                    }
+                ).then(() => {
+                    props.onTransactionConfirmed();
+                });
+            })
+            .catch((error: any) => {
+                console.log("error", error);
+                setIsUnlistButtonDisabled(false);
+            });
     };
 
     const didClickCloseButton = () => {
         props.onShouldClose(false, props.listingID);
     };
-
-    const shouldDisableUnlistButton = transactionSubmitted;
 
     return (
         <Modal show={props.isShown}>
@@ -64,20 +54,9 @@ function UnlistingModal(props: Props) {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={didClickCloseButton}>Close</Button>
-                    <Button variant="success" onClick={didClickUnlistNFTButton} disabled={shouldDisableUnlistButton}>Unlist</Button>
+                    <Button variant="success" onClick={didClickUnlistNFTButton} disabled={isUnlistButtonDisabled}>Unlist</Button>
                 </Modal.Footer>
             </Modal.Dialog>
-            <ToastContainer
-                position={toast.POSITION.TOP_CENTER}
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
         </Modal>
     );
 }

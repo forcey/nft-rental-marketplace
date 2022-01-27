@@ -48,11 +48,11 @@ async function main() {
         );
     }
     events = await kasuContract.queryFilter("ListNFT");
-    const listingIds = [];
+    const eventArgs = [];
     for (const event of events) {
-        listingIds.push(removeNumericKeys(event.args).listingId);
+        eventArgs.push(removeNumericKeys(event.args));
     }
-    console.log(`Listing IDs: ${listingIds}`)
+    console.log(`Event args: ${eventArgs}`)
 
     // Borrow
     const account1 = accounts[1];
