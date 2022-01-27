@@ -74,19 +74,15 @@ function LendPage() {
         }
     }, [loadOpensea, loadFakeNFT]);
 
-    const fetchAvailableListings = useCallback(() => {
-        const contract = KasuContract();
-        const filter = { address: contract.address,
-                         topics: [ethers.utils.id("ListNFT(uint256)")] };
+    const fetchAvailableListings = useCallback((tokenID, tokenAddress) => {
+        nftsListedForLendingRef.current.add(`${tokenID}-${tokenAddress}`);
 
-        LoginService.getInstance().provider.on(filter, event => {
-            const tokenID = Number(event.data);
-            nftsListedForLendingRef.current.add(tokenID);
-            setNFTsInUserWallet(nfts => {
-                return nfts.filter(obj => !nftsListedForLendingRef.current.has(Number(obj.tokenID)));
-              });
-        });
-
+        setNFTsInUserWallet(nfts => {
+            return nfts.filter(obj => {
+                return !nftsListedForLendingRef.current.has(`${obj.tokenID}-${obj.address}`);
+            }
+            );
+          });
     }, [setNFTsInUserWallet]);
 
     // eslint-disable-next-line
@@ -193,10 +189,10 @@ function LendPage() {
         };
     }, [loadOwnedNFTs, onLogin]);
 
-    const closeListingModal = useCallback((didListNFT, tokenID) => {
+    const closeListingModal = useCallback((didListNFT, tokenID, tokenAddress) => {
         setListingModalState({ isShown: false, tokenID: '', tokenAddress: '' });
         if (didListNFT) {
-            fetchAvailableListings();
+            fetchAvailableListings(tokenID, tokenAddress);
             fetchOwnedOngoingListingsAndRentals();
         }
     }, [setListingModalState, fetchOwnedOngoingListingsAndRentals, fetchAvailableListings]);

@@ -2,7 +2,7 @@ import { Modal, Button, Form, InputGroup, FormControl } from 'react-bootstrap';
 import React, { useState, useRef, useCallback } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 
-import { KasuContract, getLoginServiceProvider } from '../utils/abiManager';
+import { KasuContract } from '../utils/abiManager';
 import { ethers } from 'ethers';
 import { ApprovalChecker, ApprovalState } from './ApprovalChecker';
 
@@ -12,7 +12,7 @@ interface Props {
     tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean, tokenIdListed: ethers.BigNumber) => void,
+    onShouldClose: (didListNFT: boolean, tokenId: ethers.BigNumber, tokenAddress: string) => void,
 }
 
 function CreateListingModal(props: Props) {
@@ -38,30 +38,23 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickListNFTButton = () => {
-        setTransactionSubmitted(true);
+        const contract = KasuContract();
 
-        const onListNFTCompletion = new Promise<void>(resolve => {
-            const contract = KasuContract();
-            const filter = { address: contract.address,
-                             topics: [ethers.utils.id("ListNFT(uint256)")] };
-            contract.listNFT(
-                props.tokenID,
-                props.tokenAddress,
-                formValues.rentalDuration,
-                formValues.interestRate,
-                ethers.utils.parseEther(formValues.collateralRequired))
-                .then((response: any) => {
-                    const loginServiceProvider = getLoginServiceProvider();
-
-                    loginServiceProvider.on(filter, event => {
-                        resolve();
-                        props.onShouldClose(true, props.tokenID);
-                    });
-                }).catch((error: any) => {
-                    console.log("error", error);
-                    setTransactionSubmitted(false);
-                });
-        });
+        const onListNFTCompletion = (async () => {
+            try {
+                setTransactionSubmitted(true);
+                const tx = await contract.listNFT(
+                            props.tokenID,
+                            props.tokenAddress,
+                            formValues.rentalDuration,
+                            formValues.interestRate,
+                            ethers.utils.parseEther(formValues.collateralRequired));
+                await tx.wait();
+                props.onShouldClose(true, props.tokenID, props.tokenAddress);
+            } catch (e: any) {
+                setTransactionSubmitted(false);
+            }
+        })();
 
         toast.promise(
             onListNFTCompletion,
@@ -83,7 +76,7 @@ function CreateListingModal(props: Props) {
     };
 
     const didClickCloseButton = () => {
-        props.onShouldClose(false, props.tokenID);
+        props.onShouldClose(false, props.tokenID, props.tokenAddress);
     };
 
     const validateCollateral = (event: React.ChangeEvent<HTMLInputElement>) => {
