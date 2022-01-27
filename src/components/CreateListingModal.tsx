@@ -12,7 +12,7 @@ interface Props {
     tokenID: ethers.BigNumber,
     tokenAddress: string,
     isShown: boolean,
-    onShouldClose: (didListNFT: boolean) => void,
+    onShouldClose: (didListNFT: boolean, tokenIdListed: ethers.BigNumber) => void,
 }
 
 function CreateListingModal(props: Props) {
@@ -39,51 +39,51 @@ function CreateListingModal(props: Props) {
 
     const didClickListNFTButton = () => {
         setTransactionSubmitted(true);
-        const contract = KasuContract();
-        try {
+
+        const onListNFTCompletion = new Promise<void>(resolve => {
+            const contract = KasuContract();
+            const filter = { address: contract.address,
+                             topics: [ethers.utils.id("ListNFT(uint256)")] };
             contract.listNFT(
                 props.tokenID,
                 props.tokenAddress,
                 formValues.rentalDuration,
                 formValues.interestRate,
-                ethers.utils.parseEther(formValues.collateralRequired)
-            ).then(() => {
-                    // show toast when transaction is pending
-                    toast.promise(
-                        onListNFTCompletion(),
-                        {
-                          pending: 'Listing NFT is pending',
-                          success: 'Listing Your NFT... 👌',
-                          error: 'Error listing NFT'
-                        },
-                        {
-                            position: toast.POSITION.TOP_CENTER,
-                            autoClose: 15000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                        }
-                    )
-                }) ;
-        } catch (error: any) {
-            console.log("error", error.toString());
-            return;
-        }
+                ethers.utils.parseEther(formValues.collateralRequired))
+                .then((response: any) => {
+                    const loginServiceProvider = getLoginServiceProvider();
+
+                    loginServiceProvider.on(filter, event => {
+                        resolve();
+                        props.onShouldClose(true, props.tokenID);
+                    });
+                }).catch((error: any) => {
+                    console.log("error", error);
+                    setTransactionSubmitted(false);
+                });
+        });
+
+        toast.promise(
+            onListNFTCompletion,
+            {
+                pending: 'Listing NFT is pending',
+                success: 'Listing Your NFT... 👌',
+                error: 'Error listing NFT'
+            },
+            {
+                position: toast.POSITION.TOP_CENTER,
+                autoClose: 25000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            }
+        );
     };
 
-    const onListNFTCompletion = () => new Promise((resolve) => {
-        const loginServiceProvider = getLoginServiceProvider();
-        resolve(
-            loginServiceProvider.on("block", () => {
-                props.onShouldClose(true);
-            })
-        );
-    });
-
     const didClickCloseButton = () => {
-        props.onShouldClose(false);
+        props.onShouldClose(false, props.tokenID);
     };
 
     const validateCollateral = (event: React.ChangeEvent<HTMLInputElement>) => {
