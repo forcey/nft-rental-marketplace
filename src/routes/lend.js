@@ -8,11 +8,11 @@ import LoginService from '../utils/LoginService';
 import { isRentalAvailable } from "../utils/common";
 import { FakeNFTContract, KasuContract } from '../utils/abiManager';
 import { FetchOwnedNFTs } from "../utils/opensea";
+import { toast } from 'react-toastify';
 
 function LendPage() {
     const [nftsInUserWallet, setNFTsInUserWallet] = useState([]);
     const [nftsListedForLending, setNFTsListedForLending] = useState([]);
-    const nftsTerminatedRentalsRef = useRef(new Set());
     const [nftsLentOut, setNFTsLentOut] = useState([]);
     const [error, setError] = useState();
     const [isLoggedIn, setIsLoggedIn] = useState(LoginService.getInstance().isLoggedIn);
@@ -80,13 +80,15 @@ function LendPage() {
 
     const terminateRental = useCallback((listingID) => {
         const contract = KasuContract();
-        contract.terminateRental(listingID)
-          .then(() => {
-                nftsTerminatedRentalsRef.current.add(listingID.toNumber());
-              setNFTsLentOut(nfts => {
-                    return nfts.filter(obj => !nftsTerminatedRentalsRef.current.has(obj.listingID.toNumber()));
-              });
-          });
+        contract.terminateRental(listingID).then(tx => {
+            toast.promise(tx.wait(), {
+                pending: 'Terminating Rental...',
+                success: 'Rental terminated 💀',
+                error: 'Error terminating rental'
+            }).then(() => setNFTsLentOut(nfts => {
+                return nfts.filter(obj => !obj.listingID.eq(listingID));
+            }));
+        });
     }, [setNFTsLentOut]);
 
     const fetchOwnedOngoingListingsAndRentals = useCallback(() => {
