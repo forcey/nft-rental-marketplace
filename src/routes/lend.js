@@ -195,10 +195,10 @@ function LendPage() {
         fetchOwnedOngoingListingsAndRentals();
     }, [fetchOwnedOngoingListingsAndRentals]);
 
-    const closeUnlistingModel = useCallback((didUnlistNFT, listingID) => {
+    const closeUnlistingModal = useCallback((didUnlistNFT, listingID) => {
         setUnlistingModalState({ isShown: false, listingID: '' });
         if (didUnlistNFT) {
-            //Should we be refreshing the listings here if we are already 
+            //Should we be refreshing the listings here if we are already
             //listening for contract events.
             setNFTsListedForLending(nfts => {
                 return nfts.filter(obj => !obj.listingID.eq(listingID))});
@@ -236,8 +236,8 @@ function LendPage() {
             {unlistingModalState.isShown &&
                 <UnlistingModal
                     listingID={unlistingModalState.listingID}
-                    isShown={unlistingModalState.isShown} 
-                    onShouldClose={closeUnlistingModel} />}
+                    isShown={unlistingModalState.isShown}
+                    onShouldClose={closeUnlistingModal} />}
         </Container>
     )
 }
