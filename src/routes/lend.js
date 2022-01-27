@@ -149,7 +149,7 @@ function LendPage() {
             setNFTsListedForLending(ongoingListings);
             setNFTsLentOut(ongoingRentals);
         });
-    }, [setNFTsListedForLending, setNFTsLentOut, terminateRental], unlistNFT);
+    }, [setNFTsListedForLending, setNFTsLentOut, terminateRental, unlistNFT]);
 
     const loadOwnedNFTs = useCallback(() => {
         loadOwnedNFTsBasedOnChainId(LoginService.getInstance().chainId);
