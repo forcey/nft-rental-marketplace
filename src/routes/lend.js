@@ -77,7 +77,6 @@ function LendPage() {
     const fetchAvailableListings = useCallback((tokenID, tokenAddress) => {
         nftsListedForLendingRef.current.add(`${tokenID}-${tokenAddress}`);
 
-        console.log("nftsListedForLendingRef", nftsListedForLendingRef);
         setNFTsInUserWallet(nfts => {
             return nfts.filter(obj => {
                 return !nftsListedForLendingRef.current.has(`${obj.tokenID}-${obj.address}`);
