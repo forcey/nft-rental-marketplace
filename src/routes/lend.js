@@ -157,11 +157,11 @@ function LendPage() {
                 },
                 event => {
                     setNFTsListedForLending(nfts => {
-                        return nfts.filter(obj => obj.listingID != event.data );
+                        return nfts.filter(obj => !obj.listingID.eq(listingID) );
                     })
                 });
         });
-    }, [setNFTsListedForLending, setNFTsLentOut, terminateRental]);
+    }, [setNFTsListedForLending, setNFTsLentOut, terminateRental], unlistNFT);
 
     const loadOwnedNFTs = useCallback(() => {
         loadOwnedNFTsBasedOnChainId(LoginService.getInstance().chainId);
@@ -213,7 +213,7 @@ function LendPage() {
             //Should we be refreshing the listings here if we are already 
             //listening for contract events.
             setNFTsListedForLending(nfts => {
-                return nfts.filter(obj => obj.listingID != listingID)});
+                return nfts.filter(obj => !obj.listingID.eq(listingID))});
             fetchOwnedOngoingListingsAndRentals();
         }
     }, [setUnlistingModalState, fetchOwnedOngoingListingsAndRentals]);
