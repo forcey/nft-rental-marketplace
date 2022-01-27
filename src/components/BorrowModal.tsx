@@ -37,9 +37,9 @@ function BorrowModal(props: Props) {
             toast.promise(
                 tx.wait(),
                 {
-                  pending: 'Borrowing NFT...',
-                  success: 'NFT Borrowed 👌',
-                  error: 'Error Borrowing NFT'
+                    pending: 'Borrowing NFT...',
+                    success: 'NFT Borrowed 👌',
+                    error: 'Error Borrowing NFT'
                 },
             ).then(() => props.onTransactionConfirmed());
         }).catch((error: any) => {
