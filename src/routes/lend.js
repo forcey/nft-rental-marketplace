@@ -148,18 +148,6 @@ function LendPage() {
                                     });
             setNFTsListedForLending(ongoingListings);
             setNFTsLentOut(ongoingRentals);
-
-            // Listen for unlisting events
-            LoginService.getInstance().provider.on(
-                { 
-                    address: contract.address,
-                    topics: [ethers.utils.id("UnlistNFT(uint256)")]
-                },
-                event => {
-                    setNFTsListedForLending(nfts => {
-                        return nfts.filter(obj => !obj.listingID.eq(listingID) );
-                    })
-                });
         });
     }, [setNFTsListedForLending, setNFTsLentOut, terminateRental], unlistNFT);
 
