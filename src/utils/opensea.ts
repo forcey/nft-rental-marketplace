@@ -67,7 +67,12 @@ export async function FetchMetadata(tokens: Array<NFTMetadata>): Promise<Array<N
         promises.push(getAssets(params));
     }
 
-    return Promise.all(promises).then(results => {
-        return results.flat();
-    });
+    // In case a promise fails (e.g. 429 throttled), keep responses from other promises.
+    return Promise.allSettled(promises).then(results =>
+        results.reduce((acc, result) => {
+            if (result.status === "fulfilled") {
+                return acc.concat(result.value);
+            }
+            return acc;
+        }, [] as NFTMetadata[]));
 }
