@@ -197,12 +197,6 @@ function LendPage() {
 
     const closeUnlistingModal = useCallback((didUnlistNFT, listingID) => {
         setUnlistingModalState({ isShown: false, listingID: '' });
-        if (didUnlistNFT) {
-            //Should we be refreshing the listings here if we are already
-            //listening for contract events.
-            setNFTsListedForLending(nfts => {
-                return nfts.filter(obj => !obj.listingID.eq(listingID))});
-        }
     }, [setUnlistingModalState]);
 
     if (!isLoggedIn) {
