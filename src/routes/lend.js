@@ -151,6 +151,7 @@ function LendPage() {
                 return baseNFTCard;
             });
 
+            // set all fakeNFTs metadata
             setNFTsListedForLending(fakeListedNFTs);
             setNFTsLentOut(fakeLentOutNFTs);
             return;
@@ -177,6 +178,7 @@ function LendPage() {
                     baseNFTCard.didClickActionButton = unlistNFT;
 
                     const tokenMetadata = metadata.get(mapKey(baseNFTCard));
+
                     if (tokenMetadata) {
                         baseNFTCard.name = tokenMetadata.name;
                         baseNFTCard.contractName = tokenMetadata.contractName;
@@ -207,26 +209,21 @@ function LendPage() {
                     const isTerminatable = ethers.BigNumber.from(Date.now()).div(1000)
                                             .gte(obj.rental.rentedAt.add(obj.duration * 86400));
 
-                    const card = {
-                        address: obj.tokenAddress,
-                        tokenID: obj.tokenId,
-                        listingID: obj.id,
-                        collateral: ethers.utils.formatEther(obj.collateralRequired),
-                        rentalDuration: obj.duration,
-                        interestRate: obj.dailyInterestRate,
-                        actionButtonStyle: isTerminatable ? 'TERMINATE_RENTAL' : null,
-                        didClickActionButton: isTerminatable ? terminateRental : null,
-                        rentalDueDate: rentalDueDate,
-                        rentedAtDate: rentedAtDate,
-                    };
+                    const baseNFTCard = createBaseNFTCard(obj);
 
-                    const tokenMetadata = metadata.get(mapKey(card));
+                    baseNFTCard.actionButtonStyle = isTerminatable ? 'TERMINATE_RENTAL' : null;
+                    baseNFTCard.didClickActionButton = isTerminatable ? terminateRental : null;
+                    baseNFTCard.rentalDueDate = rentalDueDate;
+                    baseNFTCard.rentedAtDate = rentedAtDate;
+
+                    const tokenMetadata = metadata.get(mapKey(baseNFTCard));
+
                     if (tokenMetadata) {
-                        card.name = tokenMetadata.name;
-                        card.contractName = tokenMetadata.contractName;
-                        card.imageURI = tokenMetadata.imageURI;
+                        baseNFTCard.name = tokenMetadata.name;
+                        baseNFTCard.contractName = tokenMetadata.contractName;
+                        baseNFTCard.imageURI = tokenMetadata.imageURI;
                     }
-                    return card;
+                    return baseNFTCard;
                 });
 
                 setNFTsLentOut(ongoingRentalsWithMetadata);
