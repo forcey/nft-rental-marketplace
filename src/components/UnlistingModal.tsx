@@ -14,9 +14,12 @@ interface Props {
 
 function UnlistingModal(props: Props) {
     const [isUnlistButtonDisabled, setIsUnlistButtonDisabled] = useState(false);
+    const [error, setError] = useState(null);
 
     const didClickUnlistNFTButton = async () => {
         setIsUnlistButtonDisabled(true);
+        setError(null);
+
         const contract = KasuContract();
 
         contract.unlistNFT(props.listingID)
@@ -34,8 +37,8 @@ function UnlistingModal(props: Props) {
                 });
             })
             .catch((error: any) => {
-                console.log("error", error);
                 setIsUnlistButtonDisabled(false);
+                setError(error.data.message);
             });
     };
 

@@ -20,6 +20,7 @@ function CreateListingModal(props: Props) {
     const [validationOk, setValidationOk] = useState(false);
     const [approvalState, setApprovalState] = useState(ApprovalState.UNKNOWN);
     const [transactionSubmitted, setTransactionSubmitted] = useState(false);
+    const [error, setError] = useState(null);
 
     const isValidCollateralRef = useRef(false);
     const isValidRentalDurationRef = useRef(false);
@@ -40,6 +41,7 @@ function CreateListingModal(props: Props) {
 
     const didClickListNFTButton = () => {
         setTransactionSubmitted(true);
+        setError(null);
 
         const contract = KasuContract();
         contract.listNFT(
@@ -60,8 +62,8 @@ function CreateListingModal(props: Props) {
                 },
             ).then(() => props.onTransactionConfirmed());
         }).catch((error: any) => {
-            console.log("error", error);
             setTransactionSubmitted(false);
+            setError(error.data.message);
         });
     };
 
