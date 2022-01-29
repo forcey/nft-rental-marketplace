@@ -64,7 +64,12 @@ export function ApprovalChecker(props: Props) {
                 changeState(ApprovalState.APPROVED);
             } catch (e: any) {
                 changeState(ApprovalState.ERROR);
-                setError(e.toString());
+                if (e.message) {
+                    // Metamask signature rejection
+                    setError(e.message);
+                } else {
+                    setError(e.toString());
+                }
             }
         })();
     }, [props.tokenAddress, changeState]);

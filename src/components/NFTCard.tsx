@@ -1,4 +1,4 @@
-import { Card, Button, ListGroup, ListGroupItem } from 'react-bootstrap';
+import { Card, Button, ListGroup, ListGroupItem, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 export type NFTDisplayable = {
     address: string,
@@ -14,6 +14,7 @@ export type NFTDisplayable = {
     rentalDueDate?: string,
     actionButtonStyle?: 'BORROW' | 'LIST' | 'UNLIST' | 'TERMINATE_RENTAL' | 'RETURN',
     actionButtonDisabled: boolean,
+    actionButtonToolip: string,
     didClickActionButton?: ((tokenID: string, tokenAddress: string, listingID: number | null | undefined) => void),
 };
 
@@ -21,7 +22,7 @@ function NFTCard(props: NFTDisplayable) {
     let buttonVariant;
     let buttonString;
     if (props.actionButtonStyle != null) {
-        switch(props.actionButtonStyle) {
+        switch (props.actionButtonStyle) {
             case 'BORROW':
                 buttonVariant = 'primary';
                 buttonString = 'Borrow';
@@ -49,6 +50,18 @@ function NFTCard(props: NFTDisplayable) {
     const didClickActionButton = () => {
         props.didClickActionButton && props.didClickActionButton(props.tokenID, props.address, props.listingID);
     };
+
+    let actionButton = props.actionButtonStyle &&
+        (<div className="row" style={styles.buttonRow}>
+            <Button variant={buttonVariant} onClick={didClickActionButton} disabled={props.actionButtonDisabled}>{buttonString}</Button>
+        </div>);
+
+    if (actionButton && props.actionButtonToolip) {
+        actionButton = (<OverlayTrigger placement="top" overlay={<Tooltip>{props.actionButtonToolip}</Tooltip>}>
+            {actionButton}
+        </OverlayTrigger>);
+    }
+
     return (
         <Card style={styles.cardContainer}>
             <Card.Img variant="top" src={props.imageURI} />
@@ -62,9 +75,7 @@ function NFTCard(props: NFTDisplayable) {
                     {props.rentedAtDate && <ListGroupItem style={styles.listGroupItem}>Rented on: {props.rentedAtDate}</ListGroupItem>}
                     {props.rentalDueDate && <ListGroupItem style={styles.listGroupItem}>Due by: {props.rentalDueDate}</ListGroupItem>}
                 </ListGroup>
-                <div className="row" style={styles.buttonRow}>
-                { props.actionButtonStyle && <Button variant={buttonVariant} onClick={didClickActionButton} disabled={props.actionButtonDisabled}>{buttonString}</Button>}
-                </div>
+                {actionButton}
             </Card.Body>
         </Card>
     );

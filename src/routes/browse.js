@@ -66,6 +66,9 @@ function BrowsePage() {
         }
         const walletAddress = ethers.utils.getAddress(LoginService.getInstance().walletAddress);
         setNFTList(listings.map(listing => {
+            // Normalize all addresses to checksummed addresses for comparison.
+            const isMyOwnListing = ethers.utils.getAddress(listing.lenderAddress) === walletAddress;
+
             const card = {
                 address: listing.tokenAddress,
                 tokenID: listing.tokenId.toString(),
@@ -74,8 +77,8 @@ function BrowsePage() {
                 rentalDuration: listing.duration,
                 interestRate: listing.dailyInterestRate,
                 actionButtonStyle: 'BORROW',
-                // Normalize all addresses to checksummed addresses for comparison.
-                actionButtonDisabled: ethers.utils.getAddress(listing.lenderAddress) === walletAddress,
+                actionButtonDisabled: isMyOwnListing,
+                actionButtonToolip: isMyOwnListing && 'You already own this one.',
                 didClickActionButton: () => borrowNFT(listing),
             };
 
