@@ -40,7 +40,7 @@ function BorrowModal(props: Props) {
 
         contract.borrow(
             props.listing.id,
-            { value: paymentAmount }
+            { value: paymentAmount.total }
         ).then((tx: any) => {
             // ... close the dialog and wait for transaction to be mined into a block ...
             props.onShouldClose(true);

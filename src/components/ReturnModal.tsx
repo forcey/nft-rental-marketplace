@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Alert, Modal, Button } from 'react-bootstrap';
+import { Alert, Modal, Button, Table } from 'react-bootstrap';
 import { useCallback, useState } from 'react';
 import { Listing } from "../utils/common";
 import { KasuContract } from "../utils/abiManager"
@@ -85,9 +85,28 @@ function ReturnModal(props: Props) {
                     <Modal.Title>Return NFT</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>You will be refunded {ethers.utils.formatEther(paymentBreakdown.collateral)} ETH of collateral.</p>
-                    <p>The lender will be paid {ethers.utils.formatEther(paymentBreakdown.interestPaid)} ETH of interest.</p>
-                    <p>You will be refunded {ethers.utils.formatEther(paymentBreakdown.interestRefunded)} ETH for the interest for the remaining period.</p>
+                    <Table bordered>
+                    <tbody>
+                            <tr>
+                                <td colSpan={2} className="bg-light"><b>Refunded to you</b></td>
+                            </tr>
+                            <tr>
+                                <td>Collateral</td>
+                                <td>{ethers.utils.formatEther(paymentBreakdown.collateral)} ETH</td>
+                            </tr>
+                            <tr>
+                                <td>Unused interest</td>
+                                <td>{ethers.utils.formatEther(paymentBreakdown.interestRefunded)} ETH</td>
+                            </tr>
+                            <tr>
+                                <td colSpan={2} className="bg-light"><b>Paid to lender</b></td>
+                            </tr>
+                            <tr>
+                                <td>Interest</td>
+                                <td>{ethers.utils.formatEther(paymentBreakdown.interestPaid)} ETH</td>
+                            </tr>
+                        </tbody>
+                    </Table>
                     <ApprovalChecker verb="return"
                         tokenID={props.listing.tokenId}
                         tokenAddress={props.listing.tokenAddress}
