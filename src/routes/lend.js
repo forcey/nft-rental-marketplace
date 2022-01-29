@@ -27,7 +27,7 @@ function LendPage() {
         setListingModalState({ isShown: true, tokenID: tokenID, tokenAddress: tokenAddress });
     }, [setListingModalState]);
     const [unlistingModalState, setUnlistingModalState] = useState({ isShown: false, listingID : ''});
-    const unlistNFT = useCallback((listingID) => {
+    const unlistNFT = useCallback((tokenID, tokenAddress, listingID) => {
         setUnlistingModalState({isShown: true, listingID : listingID});
     }, [setUnlistingModalState]);
 
