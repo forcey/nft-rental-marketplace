@@ -83,7 +83,7 @@ function LendPage() {
         }
     }, [loadOpensea, loadFakeNFT]);
 
-    const terminateRental = useCallback((listingID) => {
+    const terminateRental = useCallback((tokenID, tokenAddress, listingID) => {
         const contract = KasuContract();
         contract.terminateRental(listingID).then(tx => {
             toast.promise(tx.wait(), {
@@ -229,7 +229,7 @@ function LendPage() {
                 setNFTsLentOut(ongoingRentalsWithMetadata);
             })
             .catch(error => console.log(error));
-        
+
         }, [setNFTsListedForLending, setNFTsLentOut, terminateRental, unlistNFT]);
 
     const loadOwnedNFTs = useCallback(() => {
