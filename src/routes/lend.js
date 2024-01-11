@@ -291,6 +291,8 @@ function LendPage() {
     // Remove listed/lent out NFTs from the list of owned NFTs.
     const listedNFTs = new Set(nftsListedForLending.map(mapKey).concat(nftsLentOut.map(mapKey)));
     const nftsAvailableToList = nftsInUserWallet.filter(nft => !listedNFTs.has(mapKey(nft)));
+    console.log("nftsAvailableToList", nftsAvailableToList);
+    console.log("nftsListedForLending", nftsListedForLending);
 
     return (
         <Container>

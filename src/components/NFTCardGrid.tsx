@@ -12,6 +12,7 @@ function keyNFT(nft : NFTDisplayable, index: Number) {
 
 function NFTCardGrid(props: Props) {
     const groupedNFTs = groupNFTs(props.data);
+    // console.log("props", props);
     return (
         <Container style={styles.container}>
             {

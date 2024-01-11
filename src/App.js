@@ -17,17 +17,17 @@ function App() {
               height="30"
               className="d-inline-block align-top"
             />
-            { ' ' }Kasu
+            { ' ' }NFTLendingClub
           </Navbar.Brand>
           <Nav className="me-auto">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/">Browse</NavLink>
+              <NavLink className="nav-link" to="/">Browse Marketplace</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/lend">Lend</NavLink>
+              <NavLink className="nav-link" to="/lend">Lend Your NFTs</NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/return">Return</NavLink>
+              <NavLink className="nav-link" to="/return">Return Your NFTs</NavLink>
             </li>
           </Nav>
           <Login/>
