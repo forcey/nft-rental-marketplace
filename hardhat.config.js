@@ -25,7 +25,7 @@
  }
  
  module.exports = {
-   solidity: "0.8.0",
+   solidity: "0.8.17",
    networks: networks
  };
  
